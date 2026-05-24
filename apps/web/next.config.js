@@ -5,6 +5,9 @@ const nextConfig = {
       { protocol: 'https', hostname: '**' },
     ],
   },
+  experimental: {
+    serverComponentsExternalPackages: ['knex', 'pg', 'bcryptjs', 'jsonwebtoken', 'openai', 'node-cron'],
+  },
 };
 
 module.exports = nextConfig;
