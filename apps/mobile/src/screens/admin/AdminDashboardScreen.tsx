@@ -152,7 +152,7 @@ function AdminContent() {
                     >
                       {TIER_LABELS[tier] ?? tier}
                     </Text>
-                    <Text style={styles.tierCount}>{count}</Text>
+                    <Text style={styles.tierCount}>{String(count)}</Text>
                   </View>
                 ))}
             </View>
