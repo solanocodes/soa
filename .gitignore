@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.expo/
+web-build/
+ios/
+android/
+data/solano_alerts_discord.json
+data/soa_wins_discord.json

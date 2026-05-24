@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "SOA",
+    "slug": "soa-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "soa",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#0a0a0a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.solanomedia.soa"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0a"
+      },
+      "package": "com.solanomedia.soa"
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}
