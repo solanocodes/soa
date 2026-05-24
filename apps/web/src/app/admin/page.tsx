@@ -24,6 +24,7 @@ interface AdminUser {
 
 export default function AdminPage() {
   const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.is_admin ?? false;
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,18 +33,8 @@ export default function AdminPage() {
   const [hasMoreUsers, setHasMoreUsers] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Access check
-  if (!user?.is_admin) {
-    return (
-      <div className={styles.denied}>
-        <div className={styles.deniedIcon}>🔒</div>
-        <div className={styles.deniedText}>Access Denied</div>
-        <div className={styles.deniedSub}>You need admin privileges to view this page.</div>
-      </div>
-    );
-  }
-
   useEffect(() => {
+    if (!isAdmin) return;
     setLoading(true);
     setError(null);
 
@@ -63,7 +54,7 @@ export default function AdminPage() {
       })
       .catch(() => setError('Failed to load admin data'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [isAdmin]);
 
   const loadMoreUsers = async () => {
     if (loadingUsers || !hasMoreUsers || !userCursor) return;
@@ -82,6 +73,17 @@ export default function AdminPage() {
       setLoadingUsers(false);
     }
   };
+
+  // Access check (after hooks)
+  if (!isAdmin) {
+    return (
+      <div className={styles.denied}>
+        <div className={styles.deniedIcon}>🔒</div>
+        <div className={styles.deniedText}>Access Denied</div>
+        <div className={styles.deniedSub}>You need admin privileges to view this page.</div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
