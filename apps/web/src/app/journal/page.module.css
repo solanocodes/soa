@@ -1,0 +1,86 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 56px);
+  padding: 24px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 48px;
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+}
+
+.icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--primary-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  font-size: 32px;
+}
+
+.heading {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.description {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.openBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.openBtn:hover {
+  background: #00b871;
+  box-shadow: 0 0 24px rgba(0, 208, 132, 0.3);
+  transform: translateY(-1px);
+}
+
+.openBtnIcon {
+  font-size: 18px;
+}
+
+.brandFooter {
+  margin-top: 32px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 32px 24px;
+  }
+
+  .heading {
+    font-size: 20px;
+  }
+}
