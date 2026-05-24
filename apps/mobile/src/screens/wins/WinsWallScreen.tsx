@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,6 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { api } from '../../services/api';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
-import { Ionicons } from '@expo/vector-icons';
 
 interface Win {
   id: string;
@@ -25,85 +24,162 @@ interface Win {
   is_historical: boolean;
   original_author_name: string | null;
   created_at: string;
-  author?: { username: string; display_name: string | null };
+  author?: { username: string; display_name: string | null; avatar_url?: string };
+}
+
+interface WinsResponse {
+  wins: Win[];
+  total?: number;
+  nextCursor?: string;
 }
 
 export function WinsWallScreen() {
-  const { data, fetchNextPage, hasNextPage, isLoading, refetch, isRefetching } = useInfiniteQuery({
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    refetch,
+    isRefetching,
+  } = useInfiniteQuery({
     queryKey: ['wins'],
-    queryFn: async ({ pageParam }) => {
-      const res = await api.get('/wins', { params: { cursor: pageParam, limit: 20 } });
+    queryFn: async ({ pageParam }: { pageParam?: string }) => {
+      const res = await api.get<WinsResponse>('/wins', {
+        params: { cursor: pageParam, limit: 20 },
+      });
       return res.data;
     },
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage: any) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
-  const wins = data?.pages.flatMap((page: any) => page.wins) ?? [];
+  const wins = data?.pages.flatMap((page) => page.wins) ?? [];
+  const totalCount = data?.pages[0]?.total;
 
-  const renderWin = ({ item }: { item: Win }) => {
-    const authorName = item.author?.display_name || item.author?.username || item.original_author_name || 'Student';
+  const renderWin = useCallback(({ item }: { item: Win }) => {
+    const authorName =
+      item.original_author_name ??
+      item.author?.display_name ??
+      item.author?.username ??
+      'Student';
+    const initial = authorName.charAt(0).toUpperCase();
 
     return (
       <View style={[styles.winCard, item.is_verified && styles.verifiedCard]}>
         <View style={styles.winHeader}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{authorName[0]?.toUpperCase()}</Text>
-          </View>
-          <View style={styles.headerInfo}>
-            <View style={styles.nameRow}>
-              <Text style={styles.authorName}>{authorName}</Text>
-              {item.is_verified && (
-                <Ionicons name="checkmark-circle" size={16} color={colors.primary} />
-              )}
+          <View style={styles.authorRow}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initial}</Text>
             </View>
-            <Text style={styles.timestamp}>
-              {new Date(item.created_at).toLocaleDateString()}
+            <View style={styles.headerInfo}>
+              <View style={styles.nameRow}>
+                <Text style={styles.authorName}>{authorName}</Text>
+                {item.is_verified && (
+                  <View style={styles.verifiedBadge}>
+                    <Text style={styles.verifiedIcon}>✓</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.timestamp}>
+                {new Date(item.created_at).toLocaleDateString()}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {item.pnl_amount != null && (
+          <View style={styles.pnlContainer}>
+            <Text
+              style={[
+                styles.pnl,
+                { color: item.pnl_amount >= 0 ? colors.primary : colors.danger },
+              ]}
+            >
+              {item.pnl_amount >= 0 ? '+' : ''}$
+              {Math.abs(item.pnl_amount).toLocaleString()}
             </Text>
           </View>
-          {item.pnl_amount && (
-            <Text style={styles.pnl}>+${item.pnl_amount.toLocaleString()}</Text>
-          )}
-        </View>
+        )}
 
         {item.caption && <Text style={styles.caption}>{item.caption}</Text>}
 
         {item.screenshot_url && (
-          <Image source={{ uri: item.screenshot_url }} style={styles.screenshot} resizeMode="cover" />
+          <Image
+            source={{ uri: item.screenshot_url }}
+            style={styles.screenshot}
+            resizeMode="contain"
+          />
         )}
+      </View>
+    );
+  }, []);
 
-        <View style={styles.winTypeBadge}>
-          <Text style={styles.winTypeText}>{item.win_type.replace('_', ' ')}</Text>
-        </View>
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={colors.primary} />
       </View>
     );
   };
 
-  if (isLoading) {
+  const renderEmpty = () => {
+    if (isLoading) return null;
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator color={colors.primary} size="large" />
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No wins yet</Text>
+        <Text style={styles.emptySubtext}>
+          Student wins will appear here
+        </Text>
       </View>
     );
-  }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Student Wins</Text>
-      <FlatList
-        data={wins}
-        renderItem={renderWin}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        onEndReached={() => hasNextPage && fetchNextPage()}
-        onEndReachedThreshold={0.3}
-        refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />
-        }
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No wins posted yet</Text>
-        }
-      />
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Student Wins</Text>
+        {totalCount != null && (
+          <View style={styles.countBadge}>
+            <Text style={styles.countText}>{totalCount}</Text>
+          </View>
+        )}
+      </View>
+
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : isError ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Failed to load wins</Text>
+          <Text style={styles.emptySubtext}>Pull down to try again</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={wins}
+          renderItem={renderWin}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) {
+              fetchNextPage();
+            }
+          }}
+          onEndReachedThreshold={0.3}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor={colors.primary}
+            />
+          }
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={renderEmpty}
+        />
+      )}
     </View>
   );
 }
@@ -115,37 +191,55 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
   header: {
-    fontSize: 22,
+    paddingTop: 60,
+    paddingHorizontal: spacing.xxl,
+    paddingBottom: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 28,
     fontWeight: '700',
     color: colors.text,
-    padding: spacing.lg,
-    paddingBottom: spacing.sm,
+  },
+  countBadge: {
+    marginLeft: spacing.sm,
+    backgroundColor: colors.primaryDim,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  countText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
   },
   list: {
     padding: spacing.lg,
-    paddingTop: spacing.sm,
-    gap: spacing.md,
   },
   winCard: {
     backgroundColor: colors.surface,
     borderRadius: 12,
     padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+    marginBottom: spacing.md,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.border,
   },
   verifiedCard: {
-    borderColor: colors.gold,
-    borderLeftWidth: 3,
+    borderLeftColor: colors.gold,
   },
   winHeader: {
+    marginBottom: spacing.sm,
+  },
+  authorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.sm,
   },
   avatar: {
     width: 36,
@@ -167,51 +261,70 @@ const styles = StyleSheet.create({
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
   },
   authorName: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
+    marginRight: spacing.xs,
+  },
+  verifiedBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  verifiedIcon: {
+    fontSize: 10,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   timestamp: {
     fontSize: 12,
     color: colors.textSecondary,
+    marginTop: 2,
+  },
+  pnlContainer: {
+    marginBottom: spacing.sm,
   },
   pnl: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: '700',
-    color: colors.primary,
   },
   caption: {
-    fontSize: 14,
+    fontSize: 15,
     color: colors.text,
+    lineHeight: 22,
     marginBottom: spacing.sm,
-    lineHeight: 20,
   },
   screenshot: {
     width: '100%',
     height: 200,
     borderRadius: 8,
-    marginBottom: spacing.sm,
+    marginTop: spacing.sm,
   },
-  winTypeBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.primaryDim,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: 10,
+  footerLoader: {
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
   },
-  winTypeText: {
-    fontSize: 11,
-    color: colors.primary,
-    fontWeight: '500',
-    textTransform: 'capitalize',
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xxl,
+    paddingTop: 80,
   },
   emptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
+  emptySubtext: {
+    fontSize: 14,
     color: colors.textSecondary,
     textAlign: 'center',
-    marginTop: 40,
-    fontSize: 15,
   },
 });
