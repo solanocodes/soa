@@ -1,0 +1,258 @@
+.overlay {
+  display: none;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.logoText {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 1px;
+}
+
+.logoSub {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* Channel list */
+.channelList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+/* Category */
+.category {
+  margin-bottom: 4px;
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 18px 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.categoryArrow {
+  font-size: 10px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+  width: 12px;
+}
+
+.categoryArrowCollapsed {
+  transform: rotate(-90deg);
+}
+
+.categoryName {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.categoryChannels {
+  overflow: hidden;
+}
+
+.categoryChannelsCollapsed {
+  display: none;
+}
+
+/* Channel item */
+.channel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 18px 7px 28px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.channel:hover {
+  background: var(--surface-elevated);
+  color: var(--text);
+}
+
+.channelActive {
+  background: var(--primary-dim);
+  color: var(--primary);
+}
+
+.channelActive:hover {
+  background: var(--primary-dim);
+  color: var(--primary);
+}
+
+.channelLocked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.channelEmoji {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.channelName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lockIcon {
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* User bar */
+.userBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--surface-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.userInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.username {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tierBadge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.tierFree {
+  color: var(--tier-free);
+  background: rgba(136, 136, 136, 0.15);
+}
+
+.tierCore {
+  color: var(--tier-core);
+  background: rgba(0, 208, 132, 0.12);
+}
+
+.tierWealth {
+  color: var(--tier-wealth);
+  background: rgba(201, 168, 76, 0.15);
+}
+
+.tierBot {
+  color: var(--tier-bot);
+  background: rgba(68, 136, 255, 0.15);
+}
+
+/* Mobile hamburger */
+.hamburger {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 200;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  font-size: 20px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .hamburger {
+    display: flex;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 99;
+  }
+
+  .overlayVisible {
+    display: block;
+  }
+}

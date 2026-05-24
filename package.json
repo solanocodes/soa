@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "api:dev": "npm run dev --workspace=apps/api",
+    "web:dev": "npm run dev --workspace=apps/web",
     "mobile:start": "npm run start --workspace=apps/mobile",
     "build:shared": "npm run build --workspace=packages/shared",
     "db:migrate": "npm run migrate --workspace=apps/api",
