@@ -10,18 +10,18 @@ import styles from './page.module.css';
 interface Alert {
   id: string;
   channel_slug: string;
-  user_id: string;
+  author_id: string;
   content: string;
   ticker: string | null;
   direction: string | null;
   has_image: boolean;
   image_url: string | null;
   created_at: string;
-  user: {
+  author: {
+    id: string;
     username: string;
     display_name: string | null;
-    is_admin: boolean;
-    is_coach: boolean;
+    avatar_url: string | null;
   };
 }
 
@@ -78,8 +78,8 @@ export default function AlertsPage() {
         const items: Alert[] = data.alerts ?? data;
         return {
           items,
-          nextCursor: data.next_cursor ?? (items.length >= 20 ? items[items.length - 1]?.id : null),
-          hasMore: !!data.next_cursor || items.length >= 20,
+          nextCursor: data.nextCursor ?? (items.length >= 20 ? items[items.length - 1]?.id : null),
+          hasMore: !!data.nextCursor || items.length >= 20,
         };
       } catch (err) {
         throw err;
@@ -195,7 +195,7 @@ export default function AlertsPage() {
         <>
           <div className={styles.alertList}>
             {alerts.map((alert) => {
-              const name = alert.user?.display_name || alert.user?.username || 'Unknown';
+              const name = alert.author?.display_name || alert.author?.username || 'Unknown';
               return (
                 <div key={alert.id} className={styles.alertCard}>
                   <div className={styles.alertHeader}>

@@ -15,11 +15,9 @@ const queryClient = new QueryClient({
 });
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
-  const loadUser = useAuthStore((s) => s.loadUser);
-
   useEffect(() => {
-    loadUser();
-  }, [loadUser]);
+    useAuthStore.getState().loadUser();
+  }, []);
 
   return <>{children}</>;
 }

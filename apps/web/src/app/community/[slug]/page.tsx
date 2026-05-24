@@ -23,13 +23,13 @@ interface Message {
   user_id: string;
   content: string;
   created_at: string;
-  user: {
+  author: {
     id: string;
     username: string;
     display_name: string | null;
+    avatar_url: string | null;
     is_admin: boolean;
     is_coach: boolean;
-    tier: string;
   };
 }
 
@@ -84,8 +84,8 @@ export default function ChannelChatPage() {
       const { data } = await api.get(`/channels/${channel!.id}/messages?limit=50`);
       const msgs: Message[] = data.messages ?? data;
       setMessages(msgs.reverse());
-      setCursor(data.next_cursor ?? (msgs.length >= 50 ? msgs[0]?.id : null));
-      setHasMore(!!data.next_cursor || msgs.length >= 50);
+      setCursor(data.nextCursor ?? (msgs.length >= 50 ? msgs[0]?.id : null));
+      setHasMore(!!data.nextCursor || msgs.length >= 50);
       return msgs;
     },
     enabled: !!channel?.id,
@@ -137,8 +137,8 @@ export default function ChannelChatPage() {
       );
       const older: Message[] = data.messages ?? data;
       setMessages((prev) => [...older.reverse(), ...prev]);
-      setCursor(data.next_cursor ?? (older.length >= 50 ? older[0]?.id : null));
-      setHasMore(!!data.next_cursor || older.length >= 50);
+      setCursor(data.nextCursor ?? (older.length >= 50 ? older[0]?.id : null));
+      setHasMore(!!data.nextCursor || older.length >= 50);
     } catch {
       // silent fail
     } finally {
@@ -151,10 +151,11 @@ export default function ChannelChatPage() {
     if (!newMessage.trim() || !channel?.id || sending) return;
     setSending(true);
     try {
-      await api.post('/messages', {
+      const { data } = await api.post('/messages', {
         channel_id: channel.id,
         content: newMessage.trim(),
       });
+      setMessages((prev) => [...prev, data.message]);
       setNewMessage('');
     } catch {
       // handle error
@@ -229,8 +230,8 @@ export default function ChannelChatPage() {
         )}
 
         {messages.map((msg) => {
-          const authorName = msg.user?.display_name || msg.user?.username || 'Unknown';
-          const isStaff = msg.user?.is_admin || msg.user?.is_coach;
+          const authorName = msg.author?.display_name || msg.author?.username || 'Unknown';
+          const isStaff = msg.author?.is_admin || msg.author?.is_coach;
           return (
             <div key={msg.id} className={styles.message}>
               <div

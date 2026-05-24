@@ -10,7 +10,7 @@ interface DashboardStats {
   total_students: number;
   new_this_week: number;
   inactive_7_days: number;
-  tier_breakdown: Record<string, number>;
+  students_by_tier: Record<string, number>;
 }
 
 interface AdminUser {
@@ -47,12 +47,12 @@ export default function AdminPage() {
         const userList: AdminUser[] = usersRes.data.users ?? usersRes.data;
         setUsers(userList);
         setUserCursor(
-          usersRes.data.next_cursor ??
+          usersRes.data.nextCursor ??
             (userList.length >= 20 ? userList[userList.length - 1]?.id : null)
         );
-        setHasMoreUsers(!!usersRes.data.next_cursor || userList.length >= 20);
+        setHasMoreUsers(!!usersRes.data.nextCursor || userList.length >= 20);
       })
-      .catch(() => setError('Failed to load admin data'))
+      .catch((err) => setError(err?.response?.data?.error || 'Failed to load admin data'))
       .finally(() => setLoading(false));
   }, [isAdmin]);
 
@@ -64,9 +64,9 @@ export default function AdminPage() {
       const more: AdminUser[] = data.users ?? data;
       setUsers((prev) => [...prev, ...more]);
       setUserCursor(
-        data.next_cursor ?? (more.length >= 20 ? more[more.length - 1]?.id : null)
+        data.nextCursor ?? (more.length >= 20 ? more[more.length - 1]?.id : null)
       );
-      setHasMoreUsers(!!data.next_cursor || more.length >= 20);
+      setHasMoreUsers(!!data.nextCursor || more.length >= 20);
     } catch {
       // silent
     } finally {
@@ -131,7 +131,7 @@ export default function AdminPage() {
           <div className={styles.statCard}>
             <div className={styles.statLabel}>Tier Breakdown</div>
             <div className={styles.tierBreakdown}>
-              {Object.entries(stats.tier_breakdown).map(([tier, count]) => (
+              {Object.entries(stats.students_by_tier).map(([tier, count]) => (
                 <div key={tier} className={styles.tierRow}>
                   <span>
                     <span

@@ -8,15 +8,18 @@ import styles from './page.module.css';
 interface Win {
   id: string;
   user_id: string;
-  caption: string | null;
+  content: string | null;
+  ticker: string | null;
+  profit_amount: number | null;
+  profit_percent: number | null;
   image_url: string | null;
-  pnl_amount: number | null;
   is_verified: boolean;
-  original_author_name: string | null;
   created_at: string;
-  user: {
+  author: {
+    id: string;
     username: string;
     display_name: string | null;
+    avatar_url: string | null;
   } | null;
 }
 
@@ -58,8 +61,8 @@ export default function WinsPage() {
     return {
       items,
       total: data.total_count ?? 0,
-      nextCursor: data.next_cursor ?? (items.length >= 20 ? items[items.length - 1]?.id : null),
-      hasMore: !!data.next_cursor || items.length >= 20,
+      nextCursor: data.nextCursor ?? (items.length >= 20 ? items[items.length - 1]?.id : null),
+      hasMore: !!data.nextCursor || items.length >= 20,
     };
   }, []);
 
@@ -134,9 +137,8 @@ export default function WinsPage() {
           <div className={styles.grid}>
             {wins.map((win) => {
               const name =
-                win.original_author_name ||
-                win.user?.display_name ||
-                win.user?.username ||
+                win.author?.display_name ||
+                win.author?.username ||
                 'Anonymous';
 
               return (
@@ -164,8 +166,8 @@ export default function WinsPage() {
                     )}
                   </div>
 
-                  {win.caption && (
-                    <p className={styles.caption}>{win.caption}</p>
+                  {win.content && (
+                    <p className={styles.caption}>{win.content}</p>
                   )}
 
                   {win.image_url && (
@@ -177,8 +179,8 @@ export default function WinsPage() {
                     />
                   )}
 
-                  {win.pnl_amount != null && (
-                    <div className={styles.pnl}>{formatPnl(win.pnl_amount)}</div>
+                  {win.profit_amount != null && (
+                    <div className={styles.pnl}>{formatPnl(win.profit_amount)}</div>
                   )}
                 </div>
               );

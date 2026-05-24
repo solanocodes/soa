@@ -267,7 +267,7 @@ export default function Sidebar() {
             </div>
             <span
               className={`${styles.tierBadge} ${getTierBadgeClass(
-                user?.tier || 'free'
+                user?.tier || 'FREE'
               )}`}
             >
               {tierLabel}
