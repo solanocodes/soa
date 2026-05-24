@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.env
+.env.local
+
+# Large data files - keep in deployment separately
+data/discord-alerts-export.json
+data/discord-wins-export.json
+*.tsbuildinfo
+.expo/
+ios/
+android/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+npm-debug.*
+.DS_Store

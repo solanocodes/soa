@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "SOA",
+    "slug": "soa-app",
+    "scheme": "soa",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "backgroundColor": "#0a0a0a",
+    "icon": "./src/assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#0a0a0a",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.simplyoptionsacademy.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0a"
+      },
+      "package": "com.simplyoptionsacademy.app"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-notifications",
+      "expo-image-picker"
+    ]
+  }
+}

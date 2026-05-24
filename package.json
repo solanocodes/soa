@@ -1,0 +1,22 @@
+{
+  "name": "soa",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "api:dev": "npm run dev --workspace=apps/api",
+    "mobile:start": "npm run start --workspace=apps/mobile",
+    "build:shared": "npm run build --workspace=packages/shared",
+    "db:migrate": "npm run migrate --workspace=apps/api",
+    "db:seed": "npm run seed --workspace=apps/api",
+    "import:alerts": "ts-node scripts/import-alerts.ts",
+    "import:wins": "ts-node scripts/import-wins.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "ts-node": "^10.9.2"
+  }
+}
