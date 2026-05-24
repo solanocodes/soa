@@ -1,5 +1,4 @@
-import { Knex } from 'knex';
-import bcrypt from 'bcryptjs';
+const bcrypt = require('bcryptjs');
 
 const CHANNELS = [
   { name: '👋 welcome', slug: 'welcome', category: 'Onboarding', channel_type: 'text', required_tier: 'FREE', position: 1 },
@@ -26,7 +25,7 @@ const CHANNELS = [
   { name: '👥 Student Room', slug: 'student-room', category: 'Live', channel_type: 'voice', required_tier: 'SOA_CORE', position: 22 },
 ];
 
-export async function seed(knex: Knex): Promise<void> {
+exports.seed = async function(knex) {
   // Insert admin user
   const passwordHash = await bcrypt.hash('admin123', 10);
 
@@ -54,4 +53,4 @@ export async function seed(knex: Knex): Promise<void> {
       is_active: true,
     }).onConflict('slug').ignore();
   }
-}
+};

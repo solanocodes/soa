@@ -1,6 +1,4 @@
-import { Knex } from 'knex';
-
-export async function up(knex: Knex): Promise<void> {
+exports.up = async function(knex) {
   await knex.raw(`
     CREATE TABLE courses (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -39,10 +37,10 @@ export async function up(knex: Knex): Promise<void> {
       UNIQUE(user_id, module_id)
     );
   `);
-}
+};
 
-export async function down(knex: Knex): Promise<void> {
+exports.down = async function(knex) {
   await knex.raw('DROP TABLE IF EXISTS course_progress;');
   await knex.raw('DROP TABLE IF EXISTS course_modules;');
   await knex.raw('DROP TABLE IF EXISTS courses;');
-}
+};

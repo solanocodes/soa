@@ -26,7 +26,7 @@ export default function LoginPage() {
       router.push('/community');
     } catch (err: any) {
       setError(
-        err?.response?.data?.message || 'Invalid email or password. Please try again.'
+        err?.response?.data?.error || err?.response?.data?.message || 'Invalid email or password. Please try again.'
       );
     } finally {
       setLoading(false);
