@@ -1,19 +1,19 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
   FlatList,
-  StyleSheet,
-  ActivityIndicator,
+  TextInput,
+  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { api } from '../../services/api';
 import { useAuthStore } from '../../stores/authStore';
-import { useSocket } from '../../hooks/useSocket';
-import { MessageInput } from '../../components/chat/MessageInput';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 
@@ -34,23 +34,37 @@ interface DM {
   };
 }
 
+interface MessagesResponse {
+  messages: DM[];
+  nextCursor?: string;
+}
+
 export function DMChatScreen() {
   const route = useRoute<any>();
+  const navigation = useNavigation();
   const { threadId, otherUserName } = route.params;
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
-  const { socket } = useSocket();
+  const [messageText, setMessageText] = useState('');
+  const flatListRef = useRef<FlatList>(null);
 
-  const { data, fetchNextPage, hasNextPage, isLoading } = useInfiniteQuery({
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery({
     queryKey: ['dm-messages', threadId],
-    queryFn: async ({ pageParam }) => {
-      const res = await api.get(`/dms/threads/${threadId}/messages`, {
-        params: { cursor: pageParam, limit: 30 },
-      });
+    queryFn: async ({ pageParam }: { pageParam?: string }) => {
+      const res = await api.get<MessagesResponse>(
+        `/dms/threads/${threadId}/messages`,
+        { params: { cursor: pageParam, limit: 30 } }
+      );
       return res.data;
     },
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage: any) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
   const sendMutation = useMutation({
@@ -60,44 +74,70 @@ export function DMChatScreen() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dm-messages', threadId] });
+      queryClient.invalidateQueries({ queryKey: ['dm-threads'] });
     },
   });
 
-  const messages = data?.pages.flatMap((page: any) => page.messages) ?? [];
+  const messages = data?.pages.flatMap((page) => page.messages) ?? [];
 
-  const handleSend = useCallback((content: string) => {
-    sendMutation.mutate(content);
-  }, [sendMutation]);
+  const handleSend = useCallback(() => {
+    const text = messageText.trim();
+    if (!text || sendMutation.isPending) return;
+    setMessageText('');
+    sendMutation.mutate(text);
+  }, [messageText, sendMutation]);
 
-  const renderMessage = ({ item }: { item: DM }) => {
-    const isMe = item.sender_id === user?.id;
-    const name = item.sender?.display_name || item.sender?.username || otherUserName;
+  const renderMessage = useCallback(
+    ({ item }: { item: DM }) => {
+      const isMe = item.sender_id === user?.id;
 
-    return (
-      <View style={[styles.messageBubble, isMe ? styles.myMessage : styles.theirMessage]}>
-        {!isMe && <Text style={styles.senderName}>{name}</Text>}
-        <Text style={styles.messageContent}>{item.content}</Text>
-        <View style={styles.messageFooter}>
-          {item.is_ai_generated && (
-            <View style={styles.aiBadge}>
-              <Text style={styles.aiBadgeText}>AI</Text>
-            </View>
-          )}
+      return (
+        <View
+          style={[
+            styles.messageBubbleContainer,
+            isMe ? styles.messageBubbleRight : styles.messageBubbleLeft,
+          ]}
+        >
+          <View
+            style={[
+              styles.messageBubble,
+              isMe ? styles.myBubble : styles.theirBubble,
+            ]}
+          >
+            <Text
+              style={[
+                styles.messageText,
+                isMe ? styles.myMessageText : styles.theirMessageText,
+              ]}
+            >
+              {item.content}
+            </Text>
+            {item.is_ai_generated && (
+              <View style={styles.aiBadge}>
+                <Text style={styles.aiBadgeText}>AI</Text>
+              </View>
+            )}
+          </View>
           <Text style={styles.messageTime}>
-            {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {new Date(item.created_at).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
           </Text>
         </View>
+      );
+    },
+    [user?.id]
+  );
+
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={colors.primary} />
       </View>
     );
   };
-
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator color={colors.primary} size="large" />
-      </View>
-    );
-  }
 
   return (
     <KeyboardAvoidingView
@@ -105,16 +145,78 @@ export function DMChatScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
-      <FlatList
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
-        inverted
-        contentContainerStyle={styles.list}
-        onEndReached={() => hasNextPage && fetchNextPage()}
-        onEndReachedThreshold={0.3}
-      />
-      <MessageInput onSend={handleSend} />
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.backText}>‹</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {otherUserName}
+        </Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
+      {/* Messages */}
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id}
+          inverted
+          contentContainerStyle={styles.messagesContent}
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) {
+              fetchNextPage();
+            }
+          }}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No messages yet</Text>
+              <Text style={styles.emptySubtext}>
+                Send a message to start the conversation
+              </Text>
+            </View>
+          }
+        />
+      )}
+
+      {/* Input */}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Type a message..."
+          placeholderTextColor={colors.textMuted}
+          value={messageText}
+          onChangeText={setMessageText}
+          multiline
+          maxLength={2000}
+        />
+        <TouchableOpacity
+          style={[
+            styles.sendButton,
+            (!messageText.trim() || sendMutation.isPending) &&
+              styles.sendButtonDisabled,
+          ]}
+          onPress={handleSend}
+          disabled={!messageText.trim() || sendMutation.isPending}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.sendButtonText}>
+            {sendMutation.isPending ? '...' : '↑'}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -124,62 +226,152 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: colors.background,
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    width: 36,
+    height: 36,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  list: {
-    padding: spacing.lg,
-    gap: spacing.sm,
+  backText: {
+    fontSize: 28,
+    color: colors.primary,
+    fontWeight: '300',
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 36,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  messagesContent: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  messageBubbleContainer: {
+    marginBottom: spacing.md,
+    maxWidth: '80%',
+  },
+  messageBubbleRight: {
+    alignSelf: 'flex-end',
+    alignItems: 'flex-end',
+  },
+  messageBubbleLeft: {
+    alignSelf: 'flex-start',
+    alignItems: 'flex-start',
   },
   messageBubble: {
-    maxWidth: '80%',
-    padding: spacing.md,
-    borderRadius: 12,
-    marginBottom: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: 18,
   },
-  myMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: colors.primary + '20',
+  myBubble: {
+    backgroundColor: colors.primary,
     borderBottomRightRadius: 4,
   },
-  theirMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.surface,
+  theirBubble: {
+    backgroundColor: colors.surfaceElevated,
     borderBottomLeftRadius: 4,
   },
-  senderName: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.primary,
-    marginBottom: 2,
+  messageText: {
+    fontSize: 15,
+    lineHeight: 21,
   },
-  messageContent: {
-    fontSize: 14,
+  myMessageText: {
+    color: '#000000',
+  },
+  theirMessageText: {
     color: colors.text,
-    lineHeight: 20,
-  },
-  messageFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 4,
   },
   aiBadge: {
-    backgroundColor: colors.surfaceElevated,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
+    marginTop: 4,
+    alignSelf: 'flex-end',
+    backgroundColor: colors.surface,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: 4,
   },
   aiBadgeText: {
     fontSize: 9,
     fontWeight: '700',
     color: colors.textSecondary,
+    letterSpacing: 0.5,
   },
   messageTime: {
     fontSize: 11,
     color: colors.textMuted,
+    marginTop: 4,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.background,
+  },
+  textInput: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    fontSize: 15,
+    color: colors.text,
+    maxHeight: 100,
+    marginRight: spacing.sm,
+  },
+  sendButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sendButtonDisabled: {
+    backgroundColor: colors.surfaceElevated,
+  },
+  sendButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  footerLoader: {
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingTop: 80,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
 });
