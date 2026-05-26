@@ -34,7 +34,7 @@ export default function ImportPage() {
       setProgress(`Parsed ${totalMessages} messages. Importing in batches...`);
 
       let totalImported = 0;
-      const batchSize = 500;
+      const batchSize = 100;
 
       for (let i = 0; i < totalMessages; i += batchSize) {
         const batch = messages.slice(i, i + batchSize);

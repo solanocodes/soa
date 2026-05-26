@@ -73,9 +73,13 @@ export async function POST(req: NextRequest) {
             created_at: new Date(msg.timestamp),
           }));
 
-        if (records.length > 0) {
-          await db('alerts').insert(records).onConflict('original_discord_id').ignore();
-          imported += records.length;
+        for (const record of records) {
+          try {
+            await db('alerts').insert(record);
+            imported++;
+          } catch {
+            // skip duplicates or errors
+          }
         }
       }
     } else if (type === 'wins') {
@@ -100,9 +104,13 @@ export async function POST(req: NextRequest) {
             created_at: new Date(msg.timestamp),
           }));
 
-        if (records.length > 0) {
-          await db('student_wins').insert(records).onConflict('original_discord_id').ignore();
-          imported += records.length;
+        for (const record of records) {
+          try {
+            await db('student_wins').insert(record);
+            imported++;
+          } catch {
+            // skip duplicates or errors
+          }
         }
       }
     } else {
