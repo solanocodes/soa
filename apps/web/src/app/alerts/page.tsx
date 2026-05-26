@@ -36,8 +36,7 @@ const TABS: TabConfig[] = [
   { label: 'Solano', slug: 'solano-alerts' },
   { label: 'Demon', slug: 'demon-alerts' },
   { label: 'Bryce', slug: 'bryce-alerts' },
-  { label: 'Options', slug: 'options-alerts', requiredTier: 'SOA_WEALTH' },
-  { label: 'Bot', slug: 'bot-alerts', requiredTier: 'BOT_PRODUCT' },
+  { label: 'Wealth', slug: 'wealth-alerts', requiredTier: 'SOA_WEALTH' },
 ];
 
 const AVATAR_COLORS = [

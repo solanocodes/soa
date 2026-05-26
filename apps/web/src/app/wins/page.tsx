@@ -7,13 +7,14 @@ import styles from './page.module.css';
 
 interface Win {
   id: string;
-  user_id: string;
-  content: string | null;
-  ticker: string | null;
-  profit_amount: number | null;
-  profit_percent: number | null;
-  image_url: string | null;
+  user_id: string | null;
+  caption: string | null;
+  screenshot_url: string | null;
+  win_type: string;
+  pnl_amount: number | null;
   is_verified: boolean;
+  is_historical: boolean;
+  original_author_name: string | null;
   created_at: string;
   author: {
     id: string;
@@ -137,9 +138,10 @@ export default function WinsPage() {
           <div className={styles.grid}>
             {wins.map((win) => {
               const name =
+                win.original_author_name ||
                 win.author?.display_name ||
                 win.author?.username ||
-                'Anonymous';
+                'Student';
 
               return (
                 <div
@@ -166,21 +168,21 @@ export default function WinsPage() {
                     )}
                   </div>
 
-                  {win.content && (
-                    <p className={styles.caption}>{win.content}</p>
+                  {win.caption && (
+                    <p className={styles.caption}>{win.caption}</p>
                   )}
 
-                  {win.image_url && (
+                  {win.screenshot_url && (
                     <img
-                      src={win.image_url}
+                      src={win.screenshot_url}
                       alt="Win screenshot"
                       className={styles.screenshot}
                       loading="lazy"
                     />
                   )}
 
-                  {win.profit_amount != null && (
-                    <div className={styles.pnl}>{formatPnl(win.profit_amount)}</div>
+                  {win.pnl_amount != null && (
+                    <div className={styles.pnl}>{formatPnl(win.pnl_amount)}</div>
                   )}
                 </div>
               );

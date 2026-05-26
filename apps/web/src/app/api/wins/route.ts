@@ -45,20 +45,22 @@ export async function GET(req: NextRequest) {
     const formattedWins = wins.map((win) => ({
       id: win.id,
       user_id: win.user_id,
-      content: win.content,
-      ticker: win.ticker,
-      profit_amount: win.profit_amount,
-      profit_percent: win.profit_percent,
-      image_url: win.image_url,
+      caption: win.caption,
+      screenshot_url: win.screenshot_url,
+      win_type: win.win_type,
+      pnl_amount: win.pnl_amount,
       is_verified: win.is_verified,
-      verified_at: win.verified_at,
+      is_featured: win.is_featured,
+      is_historical: win.is_historical,
+      original_author_name: win.original_author_name,
+      original_discord_id: win.original_discord_id,
       created_at: win.created_at,
-      author: {
+      author: win.user_id ? {
         id: win.user_id,
         username: win.author_username,
         display_name: win.author_display_name,
         avatar_url: win.author_avatar_url,
-      },
+      } : null,
     }));
 
     const nextCursor = wins.length > 0 ? wins[wins.length - 1].id : null;
