@@ -14,28 +14,42 @@ export async function PATCH(
     }
 
     const { id } = params;
-    const { tier, tier_expires_at } = await req.json();
-
-    if (!tier) {
-      return errorResponse('tier is required', 400);
-    }
-
-    const validTiers = ['FREE', 'SOA_CORE', 'SOA_WEALTH', 'BOT_PRODUCT'];
-    if (!validTiers.includes(tier)) {
-      return errorResponse('Invalid tier value', 400);
-    }
+    const body = await req.json();
 
     const user = await db('users').where({ id }).first();
     if (!user) {
       return errorResponse('User not found', 404);
     }
 
+    const updates: Record<string, any> = {};
+
+    if (body.tier) {
+      const validTiers = ['FREE', 'SOA_CORE', 'SOA_WEALTH', 'BOT_PRODUCT'];
+      if (!validTiers.includes(body.tier)) {
+        return errorResponse('Invalid tier value', 400);
+      }
+      updates.tier = body.tier;
+    }
+
+    if (body.tier_expires_at !== undefined) {
+      updates.tier_expires_at = body.tier_expires_at || null;
+    }
+
+    if (body.is_admin !== undefined) {
+      updates.is_admin = !!body.is_admin;
+    }
+
+    if (body.is_coach !== undefined) {
+      updates.is_coach = !!body.is_coach;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return errorResponse('No valid fields to update', 400);
+    }
+
     const [updatedUser] = await db('users')
       .where({ id })
-      .update({
-        tier,
-        tier_expires_at: tier_expires_at || null,
-      })
+      .update(updates)
       .returning([
         'id', 'email', 'username', 'display_name', 'tier',
         'tier_expires_at', 'is_admin', 'is_coach',

@@ -15,9 +15,12 @@ interface DashboardStats {
 
 interface AdminUser {
   id: string;
+  email: string;
   display_name: string | null;
   username: string;
   tier: string;
+  is_admin: boolean;
+  is_coach: boolean;
   last_active_at: string | null;
   created_at: string;
 }
@@ -32,6 +35,11 @@ export default function AdminPage() {
   const [userCursor, setUserCursor] = useState<string | null>(null);
   const [hasMoreUsers, setHasMoreUsers] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [editTier, setEditTier] = useState('');
+  const [editAdmin, setEditAdmin] = useState(false);
+  const [editCoach, setEditCoach] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -156,13 +164,17 @@ export default function AdminPage() {
               <th>Name</th>
               <th>Username</th>
               <th>Tier</th>
+              <th>Role</th>
               <th>Last Active</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.map((u) => {
               const tierColor = TIER_COLORS[u.tier] || TIER_COLORS.FREE;
               const tierLabel = TIER_LABELS[u.tier] || u.tier;
+              const isEditing = editingUser === u.id;
+              const role = u.is_admin ? 'Admin' : u.is_coach ? 'Coach' : 'Member';
               return (
                 <tr key={u.id}>
                   <td className={styles.userName}>
@@ -170,20 +182,87 @@ export default function AdminPage() {
                   </td>
                   <td>@{u.username}</td>
                   <td>
-                    <span
-                      className={styles.userTierBadge}
-                      style={{
-                        color: tierColor,
-                        background: `${tierColor}1a`,
-                      }}
-                    >
-                      {tierLabel}
-                    </span>
+                    {isEditing ? (
+                      <select
+                        value={editTier}
+                        onChange={(e) => setEditTier(e.target.value)}
+                        style={{ background: 'var(--surface-elevated)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '4px', padding: '4px 8px', fontSize: '13px' }}
+                      >
+                        <option value="FREE">Free</option>
+                        <option value="SOA_CORE">SOA Core</option>
+                        <option value="SOA_WEALTH">SOA Wealth</option>
+                        <option value="BOT_PRODUCT">Bot Product</option>
+                      </select>
+                    ) : (
+                      <span
+                        className={styles.userTierBadge}
+                        style={{ color: tierColor, background: `${tierColor}1a` }}
+                      >
+                        {tierLabel}
+                      </span>
+                    )}
                   </td>
                   <td>
-                    {u.last_active_at
-                      ? getRelativeTime(u.last_active_at)
-                      : 'Never'}
+                    {isEditing ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={editAdmin} onChange={(e) => setEditAdmin(e.target.checked)} /> Admin
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={editCoach} onChange={(e) => setEditCoach(e.target.checked)} /> Coach
+                        </label>
+                      </div>
+                    ) : (
+                      <span style={{ color: role === 'Admin' ? 'var(--gold)' : role === 'Coach' ? 'var(--primary)' : 'var(--text-secondary)', fontSize: '13px' }}>
+                        {role}
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    {u.last_active_at ? getRelativeTime(u.last_active_at) : 'Never'}
+                  </td>
+                  <td>
+                    {isEditing ? (
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          onClick={async () => {
+                            setSaving(true);
+                            try {
+                              await api.patch(`/admin/users/${u.id}/tier`, {
+                                tier: editTier,
+                                is_admin: editAdmin,
+                                is_coach: editCoach,
+                              });
+                              setUsers(prev => prev.map(x => x.id === u.id ? { ...x, tier: editTier, is_admin: editAdmin, is_coach: editCoach } : x));
+                              setEditingUser(null);
+                            } catch { /* silent */ }
+                            finally { setSaving(false); }
+                          }}
+                          disabled={saving}
+                          style={{ background: 'var(--primary)', color: '#000', border: 'none', borderRadius: '4px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          {saving ? '...' : 'Save'}
+                        </button>
+                        <button
+                          onClick={() => setEditingUser(null)}
+                          style={{ background: 'var(--surface-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '4px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setEditingUser(u.id);
+                          setEditTier(u.tier);
+                          setEditAdmin(u.is_admin);
+                          setEditCoach(u.is_coach);
+                        }}
+                        style={{ background: 'none', color: 'var(--primary)', border: '1px solid var(--primary)', borderRadius: '4px', padding: '4px 10px', fontSize: '12px', cursor: 'pointer' }}
+                      >
+                        Edit
+                      </button>
+                    )}
                   </td>
                 </tr>
               );
