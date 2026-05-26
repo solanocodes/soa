@@ -1,48 +1,59 @@
-import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 import db from './database';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const SEAN_SYSTEM_PROMPT = `You are Sean Solano, a professional NQ and SPY/QQQ day trader. You speak in a direct, casual, encouraging but no-nonsense style. You trade using technical analysis only — VWAP, orderblocks, key levels. You size lighter in uncertain conditions, you take trims into strength, you hold runners to key targets. You do not trade individual stocks. You tell students to protect their accounts above all else.
+const SEAN_SYSTEM_PROMPT = `You are Sean Solano, a professional NQ and SPY/QQQ day trader and trading educator. You run Simply Options Academy (SOA).
 
-Key traits:
-- Direct and concise — no fluff
-- Encouraging but realistic
-- Always emphasizes risk management
-- References specific technical concepts (VWAP reclaim, orderblocks, key levels)
-- Uses casual language ("let's get it", "stay disciplined", "protect your account")
-- Never gives financial advice — always frames as education
-- Focuses on process over outcome`;
+Your communication style:
+- Direct, casual, encouraging but no-nonsense
+- You trade using technical analysis only — VWAP, orderblocks, key levels
+- You size lighter in uncertain conditions, take trims into strength, hold runners to key targets
+- You don't trade individual stocks
+- You always tell students to protect their accounts above all else
+- You use phrases like "let's get it", "stay disciplined", "protect your account", "LFG"
+- You're supportive but real — you don't sugarcoat
+- You keep responses concise — 1-3 sentences usually, never long paragraphs
+- You frame everything as education, never financial advice
+
+When a student asks about a specific trade setup, reference VWAP, orderblocks, and key levels.
+When a student shares a loss, be encouraging but direct about what to improve.
+When a student shares a win, celebrate with them and reinforce what they did right.
+For billing/account/technical questions, tell them to email sean@simplyoptionsacademy.com.`;
 
 export async function generateAIResponse(
   studentMessage: string,
   conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>,
 ): Promise<{ response: string; confidence: number }> {
-  const trainingExamples = await db('ai_training_examples')
+  // Get some training examples from historical alerts
+  const trainingExamples = await db('alerts')
+    .where('is_historical', true)
     .orderByRaw('RANDOM()')
-    .limit(10)
-    .select('input_context', 'ai_response');
+    .limit(5)
+    .select('content');
 
-  const examplesText = trainingExamples
-    .map(ex => `Student: ${ex.input_context}\nSean: ${ex.ai_response}`)
-    .join('\n\n');
+  const examplesContext = trainingExamples.length > 0
+    ? `\n\nHere are some examples of how Sean communicates in his alerts:\n${trainingExamples.map((e: { content: string }) => `- "${e.content}"`).join('\n')}`
+    : '';
 
-  const systemPrompt = `${SEAN_SYSTEM_PROMPT}\n\nHere are examples of how Sean communicates:\n${examplesText}`;
+  const systemPrompt = SEAN_SYSTEM_PROMPT + examplesContext;
 
-  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-    { role: 'system', content: systemPrompt },
-    ...conversationHistory.slice(-10),
-    { role: 'user', content: studentMessage },
+  const messages = [
+    ...conversationHistory.slice(-10).map(m => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    })),
+    { role: 'user' as const, content: studentMessage },
   ];
 
-  const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
+  const completion = await anthropic.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 300,
+    system: systemPrompt,
     messages,
-    max_tokens: 500,
-    temperature: 0.7,
   });
 
-  const response = completion.choices[0]?.message?.content || '';
+  const response = completion.content[0]?.type === 'text' ? completion.content[0].text : '';
   const confidence = estimateConfidence(studentMessage, response);
 
   return { response, confidence };
@@ -51,14 +62,14 @@ export async function generateAIResponse(
 function estimateConfidence(input: string, _response: string): number {
   let confidence = 0.8;
 
-  const tradingKeywords = ['vwap', 'orderblock', 'level', 'entry', 'exit', 'stop', 'target', 'trim', 'runner'];
+  const tradingKeywords = ['vwap', 'orderblock', 'level', 'entry', 'exit', 'stop', 'target', 'trim', 'runner', 'nq', 'es', 'spy', 'qqq'];
   const hasTradingContext = tradingKeywords.some(k => input.toLowerCase().includes(k));
   if (hasTradingContext) confidence += 0.1;
 
   if (input.length > 500) confidence -= 0.1;
   if (input.includes('?') && input.split('?').length > 3) confidence -= 0.15;
 
-  const personalKeywords = ['billing', 'refund', 'cancel', 'payment', 'account issue', 'technical problem'];
+  const personalKeywords = ['billing', 'refund', 'cancel', 'payment', 'account issue', 'technical problem', "can't login"];
   if (personalKeywords.some(k => input.toLowerCase().includes(k))) confidence -= 0.3;
 
   return Math.max(0.1, Math.min(1.0, confidence));

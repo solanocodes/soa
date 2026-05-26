@@ -6,7 +6,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverComponentsExternalPackages: ['knex', 'pg', 'bcryptjs', 'jsonwebtoken', 'openai', 'node-cron'],
+    serverComponentsExternalPackages: ['knex', 'pg', 'bcryptjs', 'jsonwebtoken', 'openai', '@anthropic-ai/sdk', 'node-cron'],
   },
 };
 

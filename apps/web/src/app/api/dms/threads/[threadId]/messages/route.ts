@@ -25,6 +25,10 @@ export async function GET(
 
     let query = db('direct_messages')
       .where({ thread_id: threadId })
+      .where(function () {
+        // Hide pending AI suggestions from the main message feed
+        this.where('is_pending', false).orWhereNull('is_pending');
+      })
       .leftJoin('users', 'direct_messages.sender_id', 'users.id')
       .select(
         'direct_messages.*',
@@ -108,6 +112,7 @@ export async function POST(
         sender_id: authUser.userId,
         content,
         is_ai_generated: false,
+        is_pending: false,
         is_read: false,
       })
       .returning('*');
@@ -131,13 +136,16 @@ export async function POST(
 
     const fullMessage = { ...message, sender };
 
-    // If student sent message to coach, trigger AI response
+    // If student sent message to coach, trigger AI response generation
     if (authUser.userId === thread.student_id && thread.ai_mode !== 'off') {
       try {
         const { generateAIResponse } = await import('@/lib/ai-service');
 
         const recentMessages = await db('direct_messages')
           .where({ thread_id: threadId })
+          .where(function () {
+            this.where('is_pending', false).orWhereNull('is_pending');
+          })
           .orderBy('created_at', 'desc')
           .limit(10);
 
@@ -149,17 +157,25 @@ export async function POST(
         const { response: aiResponse, confidence } = await generateAIResponse(content, history);
 
         if (thread.ai_mode === 'autopilot' && confidence >= 0.7) {
-          await db('direct_messages')
+          // High confidence in autopilot mode: send immediately
+          const [aiMsg] = await db('direct_messages')
             .insert({
               thread_id: threadId,
               sender_id: thread.coach_id,
               content: aiResponse,
               is_ai_generated: true,
               ai_confidence: confidence,
+              is_pending: false,
               is_read: false,
-            });
+            })
+            .returning('*');
+
+          // Update thread timestamp for the auto-sent message
+          await db('direct_message_threads')
+            .where({ id: threadId })
+            .update({ last_message_at: db.fn.now() });
         } else {
-          // In suggest mode, store as pending for coach review
+          // Suggest mode, or autopilot with low confidence: save as pending
           await db('direct_messages')
             .insert({
               thread_id: threadId,
@@ -167,6 +183,7 @@ export async function POST(
               content: aiResponse,
               is_ai_generated: true,
               ai_confidence: confidence,
+              is_pending: true,
               was_edited_before_send: false,
               is_read: false,
             });
