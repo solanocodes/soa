@@ -94,13 +94,36 @@ export default function Sidebar() {
     setCollapsed((prev) => ({ ...prev, [cat]: !prev[cat] }));
   };
 
+  const ALERT_CHANNELS: Record<string, string> = {
+    'solano-alerts': '/alerts',
+    'demon-alerts': '/alerts',
+    'bryce-alerts': '/alerts',
+    'wealth-alerts': '/alerts',
+  };
+
+  const SPECIAL_CHANNELS: Record<string, string> = {
+    'share-your-wins': '/wins',
+    'best-wins': '/wins',
+  };
+
   const handleChannelClick = (channel: Channel) => {
     const channelTierLevel = getTierLevel(channel.required_tier);
     if (channelTierLevel > userTierLevel) return;
+
+    if (ALERT_CHANNELS[channel.slug]) {
+      router.push(ALERT_CHANNELS[channel.slug]);
+      return;
+    }
+    if (SPECIAL_CHANNELS[channel.slug]) {
+      router.push(SPECIAL_CHANNELS[channel.slug]);
+      return;
+    }
     router.push(`/community/${channel.slug}`);
   };
 
   const currentSlug = pathname.split('/community/')[1] || '';
+  const isAlertsPage = pathname === '/alerts';
+  const isWinsPage = pathname === '/wins';
 
   const displayName = user?.display_name || user?.username || '';
   const TIER_LABELS: Record<string, string> = {
@@ -167,7 +190,9 @@ export default function Sidebar() {
                   {items.map((ch) => {
                     const locked =
                       getTierLevel(ch.required_tier) > userTierLevel;
-                    const active = currentSlug === ch.slug;
+                    const active = currentSlug === ch.slug
+                      || (isAlertsPage && !!ALERT_CHANNELS[ch.slug])
+                      || (isWinsPage && !!SPECIAL_CHANNELS[ch.slug]);
 
                     return (
                       <div
