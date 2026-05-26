@@ -53,6 +53,22 @@ export async function POST(req: NextRequest) {
 
     const { password_hash: _, ...userWithoutPassword } = user;
 
+    // Post welcome message in the welcome channel
+    try {
+      const welcomeChannel = await db('channels').where({ slug: 'welcome' }).first();
+      const adminUser = await db('users').where({ is_admin: true }).first();
+      if (welcomeChannel && adminUser) {
+        await db('messages').insert({
+          channel_id: welcomeChannel.id,
+          user_id: adminUser.id,
+          content: `🎉 **${username}** just joined the SOA fam! Welcome to Simply Options Academy 🔥`,
+          message_type: 'system',
+        });
+      }
+    } catch (e) {
+      console.error('Failed to post welcome message:', e);
+    }
+
     // Schedule onboarding automation events
     const now = new Date();
     const onboardingEvents = [
