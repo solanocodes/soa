@@ -172,7 +172,7 @@ export default function Sidebar() {
   const TIER_LABELS: Record<string, string> = {
     FREE: 'Free',
     MENTORSHIP: 'Mentorship',
-    SOA_CORE: 'Core',
+    SOA_CORE: 'Mentorship',
     INNER_CIRCLE: 'Inner Circle',
     SOA_WEALTH: 'Wealth',
   };

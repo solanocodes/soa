@@ -190,7 +190,6 @@ export default function AdminPage() {
                       >
                         <option value="FREE">Free</option>
                         <option value="MENTORSHIP">Mentorship Student</option>
-                        <option value="SOA_CORE">SOA Core</option>
                         <option value="INNER_CIRCLE">Inner Circle</option>
                         <option value="SOA_WEALTH">SOA Wealth</option>
                       </select>

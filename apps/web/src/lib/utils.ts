@@ -31,9 +31,9 @@ export function getInitials(name: string | null | undefined): string {
 export const TIER_HIERARCHY: Record<string, number> = {
   FREE: 0,
   MENTORSHIP: 1,
-  SOA_CORE: 2,
-  INNER_CIRCLE: 3,
-  SOA_WEALTH: 4,
+  SOA_CORE: 1,
+  INNER_CIRCLE: 2,
+  SOA_WEALTH: 3,
 };
 
 export function hasAccess(userTier: string, requiredTier: string): boolean {
@@ -42,7 +42,7 @@ export function hasAccess(userTier: string, requiredTier: string): boolean {
 
 export const TIER_COLORS: Record<string, string> = {
   FREE: '#888888',
-  MENTORSHIP: '#5865F2',
+  MENTORSHIP: '#00D084',
   SOA_CORE: '#00D084',
   INNER_CIRCLE: '#FF6B6B',
   SOA_WEALTH: '#C9A84C',
@@ -51,7 +51,7 @@ export const TIER_COLORS: Record<string, string> = {
 export const TIER_LABELS: Record<string, string> = {
   FREE: 'Free',
   MENTORSHIP: 'Mentorship',
-  SOA_CORE: 'SOA Core',
+  SOA_CORE: 'Mentorship',
   INNER_CIRCLE: 'Inner Circle',
   SOA_WEALTH: 'SOA Wealth',
 };
