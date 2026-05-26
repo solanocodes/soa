@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
-import { connectSocket } from '@/lib/socket';
 import { useAuthStore } from '@/lib/store';
 import { getRelativeTime, getInitials, hasAccess } from '@/lib/utils';
 import styles from './page.module.css';
@@ -14,8 +13,10 @@ interface Alert {
   content: string;
   ticker: string | null;
   direction: string | null;
+  alert_type: string;
   has_image: boolean;
   image_url: string | null;
+  is_historical: boolean;
   created_at: string;
   author: {
     id: string;
@@ -60,7 +61,6 @@ export default function AlertsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
-  const [newAlertsCount, setNewAlertsCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const visibleTabs = TABS.filter(
@@ -68,87 +68,55 @@ export default function AlertsPage() {
   );
 
   const fetchAlerts = useCallback(
-    async (channelSlug: string | null, cursorVal?: string | null) => {
-      try {
-        let url = '/alerts?limit=20';
-        if (channelSlug) url += `&channel_slug=${channelSlug}`;
-        if (cursorVal) url += `&cursor=${cursorVal}`;
-        const { data } = await api.get(url);
-        const items: Alert[] = data.alerts ?? data;
-        return {
-          items,
-          nextCursor: data.nextCursor ?? (items.length >= 20 ? items[items.length - 1]?.id : null),
-          hasMore: !!data.nextCursor || items.length >= 20,
-        };
-      } catch (err) {
-        throw err;
-      }
+    async (channelSlug: string | null, cursorId?: string | null) => {
+      const params: Record<string, string> = { limit: '50' };
+      if (channelSlug) params.channel_slug = channelSlug;
+      if (cursorId) params.cursor = cursorId;
+      const { data } = await api.get('/alerts', { params });
+      const items: Alert[] = data.alerts ?? [];
+      return {
+        items,
+        nextCursor: items.length >= 50 ? items[items.length - 1]?.id : null,
+      };
     },
     []
   );
 
-  // Initial load and tab change
   useEffect(() => {
     if (!user) return;
+    let cancelled = false;
     setLoading(true);
     setError(null);
     setAlerts([]);
     setCursor(null);
     setHasMore(true);
-    setNewAlertsCount(0);
 
     fetchAlerts(activeTab)
-      .then(({ items, nextCursor, hasMore: more }) => {
+      .then(({ items, nextCursor }) => {
+        if (cancelled) return;
         setAlerts(items);
         setCursor(nextCursor);
-        setHasMore(more);
+        setHasMore(!!nextCursor);
       })
-      .catch(() => setError('Failed to load alerts'))
-      .finally(() => setLoading(false));
+      .catch(() => { if (!cancelled) setError('Failed to load alerts'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
   }, [activeTab, fetchAlerts, user]);
 
-  // Load more
   const loadMore = async () => {
     if (loadingMore || !hasMore || !cursor) return;
     setLoadingMore(true);
     try {
-      const { items, nextCursor, hasMore: more } = await fetchAlerts(activeTab, cursor);
+      const { items, nextCursor } = await fetchAlerts(activeTab, cursor);
       setAlerts((prev) => [...prev, ...items]);
       setCursor(nextCursor);
-      setHasMore(more);
+      setHasMore(!!nextCursor);
     } catch {
       // silent
     } finally {
       setLoadingMore(false);
     }
-  };
-
-  // Socket for new alerts
-  useEffect(() => {
-    const socket = connectSocket();
-
-    const handleNewAlert = (alert: Alert) => {
-      if (activeTab && alert.channel_slug !== activeTab) return;
-      setNewAlertsCount((c) => c + 1);
-    };
-
-    socket.on('new_alert', handleNewAlert);
-
-    return () => {
-      socket.off('new_alert', handleNewAlert);
-    };
-  }, [activeTab]);
-
-  const showNewAlerts = () => {
-    setNewAlertsCount(0);
-    setLoading(true);
-    fetchAlerts(activeTab)
-      .then(({ items, nextCursor, hasMore: more }) => {
-        setAlerts(items);
-        setCursor(nextCursor);
-        setHasMore(more);
-      })
-      .finally(() => setLoading(false));
   };
 
   return (
@@ -167,14 +135,6 @@ export default function AlertsPage() {
         ))}
       </div>
 
-      {newAlertsCount > 0 && (
-        <div className={styles.newAlertsBanner}>
-          <button className={styles.newAlertsBtn} onClick={showNewAlerts}>
-            {newAlertsCount} new alert{newAlertsCount > 1 ? 's' : ''} - Click to refresh
-          </button>
-        </div>
-      )}
-
       {loading ? (
         <div className={styles.centerState}>
           <div className={styles.spinner} />
@@ -183,7 +143,7 @@ export default function AlertsPage() {
       ) : error ? (
         <div className={styles.centerState}>
           <span style={{ color: 'var(--danger)' }}>{error}</span>
-          <button className={styles.loadMoreBtn} onClick={() => setActiveTab(activeTab)}>
+          <button className={styles.loadMoreBtn} onClick={() => { setError(null); setLoading(true); fetchAlerts(activeTab).then(({ items, nextCursor }) => { setAlerts(items); setCursor(nextCursor); setHasMore(!!nextCursor); }).catch(() => setError('Failed to load alerts')).finally(() => setLoading(false)); }}>
             Retry
           </button>
         </div>
@@ -195,7 +155,7 @@ export default function AlertsPage() {
         <>
           <div className={styles.alertList}>
             {alerts.map((alert) => {
-              const name = alert.author?.display_name || alert.author?.username || 'Unknown';
+              const name = alert.author?.display_name || alert.author?.username || 'Sean Solano';
               return (
                 <div key={alert.id} className={styles.alertCard}>
                   <div className={styles.alertHeader}>
