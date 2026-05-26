@@ -74,20 +74,19 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const authUser = await requireAuth(req);
-    const { content, ticker, profit_amount, profit_percent, image_url } = await req.json();
+    const { caption, screenshot_url, pnl_amount } = await req.json();
 
-    if (!content) {
-      return errorResponse('content is required', 400);
+    if (!caption && !screenshot_url) {
+      return errorResponse('caption or screenshot_url is required', 400);
     }
 
     const [win] = await db('student_wins')
       .insert({
         user_id: authUser.userId,
-        content,
-        ticker: ticker ? ticker.toUpperCase() : null,
-        profit_amount: profit_amount || null,
-        profit_percent: profit_percent || null,
-        image_url: image_url || null,
+        caption: caption || null,
+        screenshot_url: screenshot_url || null,
+        pnl_amount: pnl_amount || null,
+        win_type: 'trade_win',
         is_verified: false,
       })
       .returning('*');

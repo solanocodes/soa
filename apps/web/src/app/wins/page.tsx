@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { getRelativeTime, getInitials } from '@/lib/utils';
@@ -55,6 +55,8 @@ export default function WinsPage() {
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchWins = useCallback(async (cursorVal?: string | null) => {
     let url = '/wins?limit=20';
@@ -123,6 +125,27 @@ export default function WinsPage() {
     );
   }
 
+  const handleUploadWin = async (file: File) => {
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const dataUrl = reader.result as string;
+        const { data } = await api.post('/wins', {
+          caption: null,
+          screenshot_url: dataUrl,
+        });
+        if (data.win) {
+          setWins((prev) => [{ ...data.win, author: { id: user?.id || '', username: user?.username || '', display_name: user?.display_name || null, avatar_url: user?.avatar_url || null } }, ...prev]);
+        }
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -130,6 +153,23 @@ export default function WinsPage() {
         {totalCount > 0 && (
           <span className={styles.countBadge}>{totalCount}</span>
         )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleUploadWin(file);
+          }}
+        />
+        <button
+          className={styles.uploadBtn}
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+        >
+          {uploading ? 'Uploading...' : '+ Share Your Win'}
+        </button>
       </div>
 
       {wins.length === 0 ? (
@@ -140,11 +180,23 @@ export default function WinsPage() {
         <>
           <div className={styles.grid}>
             {wins.map((win) => {
-              const name =
-                win.original_author_name ||
-                win.author?.display_name ||
-                win.author?.username ||
-                'Student';
+              const isHistorical = win.is_historical && !win.author?.username;
+              const name = win.author?.display_name || win.author?.username || '';
+
+              if (isHistorical) {
+                return (
+                  <div key={win.id} className={`${styles.card} ${styles.cardVerified}`}>
+                    {win.screenshot_url && win.screenshot_url.startsWith('http') && (
+                      <img
+                        src={win.screenshot_url}
+                        alt="Win"
+                        className={styles.screenshot}
+                        loading="lazy"
+                      />
+                    )}
+                  </div>
+                );
+              }
 
               return (
                 <div
@@ -154,9 +206,9 @@ export default function WinsPage() {
                   <div className={styles.cardHeader}>
                     <div
                       className={styles.cardAvatar}
-                      style={{ background: getAvatarColor(name) }}
+                      style={{ background: getAvatarColor(name || 'S') }}
                     >
-                      {getInitials(name)}
+                      {getInitials(name || 'S')}
                     </div>
                     <div className={styles.cardAuthorInfo}>
                       <div className={styles.cardAuthor}>{name}</div>
