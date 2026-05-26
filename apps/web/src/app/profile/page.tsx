@@ -43,9 +43,9 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const maxSize = 500 * 1024;
+    const maxSize = 3 * 1024 * 1024;
     if (file.size > maxSize) {
-      alert('Image must be under 500KB');
+      alert('Image must be under 3MB');
       return;
     }
 
