@@ -171,9 +171,10 @@ export default function Sidebar() {
   const displayName = user?.display_name || user?.username || '';
   const TIER_LABELS: Record<string, string> = {
     FREE: 'Free',
+    MENTORSHIP: 'Mentorship',
     SOA_CORE: 'Core',
+    INNER_CIRCLE: 'Inner Circle',
     SOA_WEALTH: 'Wealth',
-    BOT_PRODUCT: 'Bot',
   };
   const tierLabel = TIER_LABELS[user?.tier || 'FREE'] || 'Free';
 

@@ -189,9 +189,10 @@ export default function AdminPage() {
                         style={{ background: 'var(--surface-elevated)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '4px', padding: '4px 8px', fontSize: '13px' }}
                       >
                         <option value="FREE">Free</option>
+                        <option value="MENTORSHIP">Mentorship Student</option>
                         <option value="SOA_CORE">SOA Core</option>
+                        <option value="INNER_CIRCLE">Inner Circle</option>
                         <option value="SOA_WEALTH">SOA Wealth</option>
-                        <option value="BOT_PRODUCT">Bot Product</option>
                       </select>
                     ) : (
                       <span

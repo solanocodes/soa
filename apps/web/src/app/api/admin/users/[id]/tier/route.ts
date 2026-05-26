@@ -24,7 +24,7 @@ export async function PATCH(
     const updates: Record<string, any> = {};
 
     if (body.tier) {
-      const validTiers = ['FREE', 'SOA_CORE', 'SOA_WEALTH', 'BOT_PRODUCT'];
+      const validTiers = ['FREE', 'MENTORSHIP', 'SOA_CORE', 'INNER_CIRCLE', 'SOA_WEALTH'];
       if (!validTiers.includes(body.tier)) {
         return errorResponse('Invalid tier value', 400);
       }
