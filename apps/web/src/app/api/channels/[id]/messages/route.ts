@@ -93,6 +93,9 @@ export async function GET(
 
     const nextCursor = messages.length > 0 ? messages[messages.length - 1].id : null;
 
+    // Update the user's last_active_at timestamp
+    await db('users').where({ id: authUser.userId }).update({ last_active_at: db.fn.now() });
+
     return NextResponse.json({ messages: formattedMessages, nextCursor });
   } catch (err: any) {
     return errorResponse(err.message, err.status || 500);

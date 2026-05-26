@@ -64,6 +64,15 @@ export default function Sidebar() {
     },
   });
 
+  const { data: unreadData } = useQuery<Record<string, number>>({
+    queryKey: ['channels-unread'],
+    queryFn: async () => {
+      const { data } = await api.get('/channels/unread');
+      return data.unread ?? {};
+    },
+    refetchInterval: 30000,
+  });
+
   // Close mobile sidebar on route change
   useEffect(() => {
     setMobileOpen(false);
@@ -235,6 +244,8 @@ export default function Sidebar() {
                       || (isWinsPage && ch.slug === 'share-your-wins')
                       || (isDmsPage && ch.slug === 'direct-messages');
 
+                    const hasUnread = !locked && !active && unreadData && unreadData[ch.id] > 0;
+
                     return (
                       <div
                         key={ch.id}
@@ -246,6 +257,9 @@ export default function Sidebar() {
                         <span className={styles.channelName}>{ch.name}</span>
                         {locked && (
                           <span className={styles.lockIcon}>&#128274;</span>
+                        )}
+                        {hasUnread && (
+                          <span className={styles.unreadDot} />
                         )}
                       </div>
                     );

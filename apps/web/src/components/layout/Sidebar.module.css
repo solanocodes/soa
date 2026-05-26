@@ -141,6 +141,15 @@
   flex-shrink: 0;
 }
 
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 /* User bar */
 .userBar {
   display: flex;
