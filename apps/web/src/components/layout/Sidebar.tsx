@@ -103,12 +103,23 @@ export default function Sidebar() {
     'share-your-wins': '/wins',
   };
 
+  const EXTERNAL_CHANNELS: Record<string, string> = {
+    'trade-sessions': 'https://soa.app.clientclub.net/courses/library-v2',
+    'futures-lab': 'https://soa.app.clientclub.net/courses/library-v2',
+    'masterclasses': 'https://soa.app.clientclub.net/courses/library-v2',
+    'mastery-course': 'https://soa.app.clientclub.net/courses/library-v2',
+  };
+
   const HIDDEN_CHANNELS = ['demon-alerts', 'bryce-alerts', 'best-wins'];
 
   const handleChannelClick = (channel: Channel) => {
     const channelTierLevel = getTierLevel(channel.required_tier);
     if (channelTierLevel > userTierLevel) return;
 
+    if (EXTERNAL_CHANNELS[channel.slug]) {
+      window.open(EXTERNAL_CHANNELS[channel.slug], '_blank');
+      return;
+    }
     if (ALERT_CHANNELS[channel.slug]) {
       router.push(ALERT_CHANNELS[channel.slug]);
       return;
