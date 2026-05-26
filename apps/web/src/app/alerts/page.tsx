@@ -89,6 +89,7 @@ export default function AlertsPage() {
 
   // Initial load and tab change
   useEffect(() => {
+    if (!user) return;
     setLoading(true);
     setError(null);
     setAlerts([]);
@@ -104,7 +105,7 @@ export default function AlertsPage() {
       })
       .catch(() => setError('Failed to load alerts'))
       .finally(() => setLoading(false));
-  }, [activeTab, fetchAlerts]);
+  }, [activeTab, fetchAlerts, user]);
 
   // Load more
   const loadMore = async () => {

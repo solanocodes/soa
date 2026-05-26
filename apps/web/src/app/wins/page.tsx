@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
+import { useAuthStore } from '@/lib/store';
 import { getRelativeTime, getInitials } from '@/lib/utils';
 import styles from './page.module.css';
 
@@ -46,6 +47,7 @@ function formatPnl(amount: number): string {
 }
 
 export default function WinsPage() {
+  const user = useAuthStore((s) => s.user);
   const [wins, setWins] = useState<Win[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -68,6 +70,7 @@ export default function WinsPage() {
   }, []);
 
   useEffect(() => {
+    if (!user) return;
     setLoading(true);
     setError(null);
     fetchWins()
