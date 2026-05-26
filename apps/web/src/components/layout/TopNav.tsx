@@ -98,8 +98,13 @@ export default function TopNav() {
             className={styles.avatarBtn}
             onClick={() => setDropdownOpen((o) => !o)}
             aria-label="User menu"
+            style={user?.avatar_url ? { padding: 0, overflow: 'hidden' } : {}}
           >
-            {getInitials(displayName || 'U')}
+            {user?.avatar_url ? (
+              <img src={user.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+            ) : (
+              getInitials(displayName || 'U')
+            )}
           </button>
 
           {dropdownOpen && (

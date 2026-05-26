@@ -230,9 +230,13 @@ export default function Sidebar() {
 
 
         <div className={styles.userBar}>
-          <div className={styles.avatar}>
-            {getInitials(displayName || 'U')}
-          </div>
+          {user?.avatar_url ? (
+            <img src={user.avatar_url} alt="" className={styles.avatar} style={{ objectFit: 'cover' }} />
+          ) : (
+            <div className={styles.avatar}>
+              {getInitials(displayName || 'U')}
+            </div>
+          )}
           <div className={styles.userInfo}>
             <div className={styles.username}>
               {user?.username || 'Loading...'}

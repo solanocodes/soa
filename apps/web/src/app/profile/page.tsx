@@ -1,6 +1,8 @@
 'use client';
 
+import { useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { getInitials, TIER_COLORS, TIER_LABELS } from '@/lib/utils';
 import styles from './page.module.css';
@@ -26,19 +28,69 @@ export default function ProfilePage() {
   const tierLabel = TIER_LABELS[user.tier] || user.tier;
   const displayName = user.display_name || user.username;
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleLogout = () => {
     logout();
     router.push('/login');
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const maxSize = 500 * 1024;
+    if (file.size > maxSize) {
+      alert('Image must be under 500KB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      try {
+        await api.post('/auth/avatar', { avatar_url: dataUrl });
+        useAuthStore.getState().loadUser();
+      } catch {
+        alert('Failed to update avatar');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.avatarSection}>
-        <div
-          className={styles.avatar}
-          style={{ background: tierColor }}
-        >
-          {getInitials(displayName)}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handleAvatarChange}
+        />
+        {user.avatar_url ? (
+          <img
+            src={user.avatar_url}
+            alt="Avatar"
+            className={styles.avatar}
+            onClick={handleAvatarClick}
+            style={{ cursor: 'pointer', objectFit: 'cover' }}
+          />
+        ) : (
+          <div
+            className={styles.avatar}
+            style={{ background: tierColor, cursor: 'pointer' }}
+            onClick={handleAvatarClick}
+          >
+            {getInitials(displayName)}
+          </div>
+        )}
+        <div className={styles.avatarHint} onClick={handleAvatarClick}>
+          Click to change avatar
         </div>
         <div className={styles.displayName}>{displayName}</div>
         <div className={styles.username}>@{user.username}</div>
