@@ -84,7 +84,7 @@ export default function WinsPage() {
       })
       .catch(() => setError('Failed to load wins'))
       .finally(() => setLoading(false));
-  }, [fetchWins]);
+  }, [fetchWins, user]);
 
   const loadMore = async () => {
     if (loadingMore || !hasMore || !cursor) return;

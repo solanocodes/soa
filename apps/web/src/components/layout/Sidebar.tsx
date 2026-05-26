@@ -24,8 +24,10 @@ interface GroupedChannels {
 
 const TIER_ORDER: Record<string, number> = {
   FREE: 0,
+  MENTORSHIP: 1,
   SOA_CORE: 1,
-  SOA_WEALTH: 2,
+  INNER_CIRCLE: 2,
+  SOA_WEALTH: 3,
   BOT_PRODUCT: 3,
 };
 
@@ -35,8 +37,8 @@ function getTierLevel(tier: string): number {
 
 function getTierBadgeClass(tier: string): string {
   if (tier === 'SOA_WEALTH') return styles.tierWealth;
-  if (tier === 'BOT_PRODUCT') return styles.tierBot;
-  if (tier === 'SOA_CORE') return styles.tierCore;
+  if (tier === 'INNER_CIRCLE') return styles.tierWealth;
+  if (tier === 'MENTORSHIP' || tier === 'SOA_CORE') return styles.tierCore;
   return styles.tierFree;
 }
 
