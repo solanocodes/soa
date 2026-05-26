@@ -87,6 +87,7 @@ export default function ChannelChatPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [pastedImage, setPastedImage] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const feedRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -176,19 +177,42 @@ export default function ChannelChatPage() {
 
   // Send message
   const handleSend = async () => {
-    if (!newMessage.trim() || !channel?.id || sending) return;
+    if ((!newMessage.trim() && !pastedImage) || !channel?.id || sending) return;
     setSending(true);
     try {
+      let content = newMessage.trim();
+      if (pastedImage) {
+        content = content ? `${content}\n[image]${pastedImage}[/image]` : `[image]${pastedImage}[/image]`;
+      }
       const { data } = await api.post('/messages', {
         channel_id: channel.id,
-        content: newMessage.trim(),
+        content,
       });
       setMessages((prev) => [...prev, data.message]);
       setNewMessage('');
+      setPastedImage(null);
     } catch {
       // handle error
     } finally {
       setSending(false);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          setPastedImage(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
     }
   };
 
@@ -338,7 +362,19 @@ export default function ChannelChatPage() {
                     {getRelativeTime(msg.created_at)}
                   </span>
                 </div>
-                <div className={styles.messageContent}>{msg.content}</div>
+                <div className={styles.messageContent}>
+                  {msg.content.includes('[image]') ? (
+                    <>
+                      {msg.content.replace(/\[image\].*?\[\/image\]/g, '').trim() && (
+                        <span>{msg.content.replace(/\[image\].*?\[\/image\]/g, '').trim()}</span>
+                      )}
+                      {msg.content.match(/\[image\](.*?)\[\/image\]/g)?.map((match: string, i: number) => {
+                        const src = match.replace('[image]', '').replace('[/image]', '');
+                        return <img key={i} src={src} alt="Shared image" style={{ maxWidth: '400px', borderRadius: '8px', marginTop: '8px', display: 'block' }} />;
+                      })}
+                    </>
+                  ) : msg.content}
+                </div>
               </div>
             </div>
           );
@@ -352,6 +388,17 @@ export default function ChannelChatPage() {
       </div>
 
       <div className={styles.inputArea}>
+        {pastedImage && (
+          <div style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src={pastedImage} alt="Preview" style={{ height: '60px', borderRadius: '6px' }} />
+            <button
+              onClick={() => setPastedImage(null)}
+              style={{ background: 'var(--danger)', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}
+            >
+              Remove
+            </button>
+          </div>
+        )}
         <div className={styles.inputRow}>
           <input
             className={styles.textInput}
@@ -360,12 +407,13 @@ export default function ChannelChatPage() {
             value={newMessage}
             onChange={(e) => handleInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             disabled={sending}
           />
           <button
             className={styles.sendBtn}
             onClick={handleSend}
-            disabled={!newMessage.trim() || sending}
+            disabled={(!newMessage.trim() && !pastedImage) || sending}
           >
             Send
           </button>
