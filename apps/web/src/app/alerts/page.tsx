@@ -192,7 +192,7 @@ export default function AlertsPage() {
 
                   <div className={styles.alertContent}>{alert.content}</div>
 
-                  {alert.has_image && alert.image_url && (
+                  {alert.has_image && alert.image_url && alert.image_url.startsWith('http') && (
                     <img
                       src={alert.image_url}
                       alt="Alert chart"

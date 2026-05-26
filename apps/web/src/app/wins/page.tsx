@@ -175,7 +175,7 @@ export default function WinsPage() {
                     <p className={styles.caption}>{win.caption}</p>
                   )}
 
-                  {win.screenshot_url && (
+                  {win.screenshot_url && win.screenshot_url.startsWith('http') && (
                     <img
                       src={win.screenshot_url}
                       alt="Win screenshot"
