@@ -57,6 +57,8 @@ export default function AlertsPage() {
   const searchParams = useSearchParams();
   const tabFromUrl = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<string | null>(tabFromUrl);
+  const [newAlert, setNewAlert] = useState('');
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (tabFromUrl) setActiveTab(tabFromUrl);
@@ -109,6 +111,25 @@ export default function AlertsPage() {
     return () => { cancelled = true; };
   }, [activeTab, fetchAlerts, user]);
 
+  const handleSendAlert = async () => {
+    if (!newAlert.trim() || sending) return;
+    setSending(true);
+    try {
+      const channelSlug = activeTab || 'solano-alerts';
+      const { data } = await api.post('/alerts', {
+        content: newAlert.trim(),
+        alert_type: 'trade',
+        channel_slug: channelSlug,
+      });
+      setAlerts((prev) => [data.alert, ...prev]);
+      setNewAlert('');
+    } catch {
+      // silent
+    } finally {
+      setSending(false);
+    }
+  };
+
   const loadMore = async () => {
     if (loadingMore || !hasMore || !cursor) return;
     setLoadingMore(true);
@@ -139,6 +160,32 @@ export default function AlertsPage() {
           </button>
         ))}
       </div>
+
+      {(user?.is_admin || user?.is_coach) && (
+        <div className={styles.alertInputArea}>
+          <input
+            className={styles.alertInput}
+            type="text"
+            placeholder="Post a new alert..."
+            value={newAlert}
+            onChange={(e) => setNewAlert(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendAlert();
+              }
+            }}
+            disabled={sending}
+          />
+          <button
+            className={styles.alertSendBtn}
+            onClick={handleSendAlert}
+            disabled={!newAlert.trim() || sending}
+          >
+            {sending ? '...' : 'Post'}
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className={styles.centerState}>

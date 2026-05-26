@@ -84,7 +84,12 @@ export default function TopNav() {
           &#128276;
         </button>
 
-        <button className={styles.iconBtn} aria-label="Direct Messages" title="Direct Messages">
+        <button
+          className={styles.iconBtn}
+          aria-label="Direct Messages"
+          title="Direct Messages"
+          onClick={() => router.push('/dms')}
+        >
           &#9993;
         </button>
 

@@ -108,6 +108,7 @@ export default function Sidebar() {
     'futures-lab': 'https://soa.app.clientclub.net/courses/library-v2',
     'masterclasses': 'https://soa.app.clientclub.net/courses/library-v2',
     'mastery-course': 'https://soa.app.clientclub.net/courses/library-v2',
+    'trade-journal': 'https://app.simplyoptionsacademy.com',
   };
 
   const HIDDEN_CHANNELS = ['demon-alerts', 'bryce-alerts', 'best-wins'];
@@ -227,43 +228,6 @@ export default function Sidebar() {
 
         </div>
 
-        <div style={{ padding: '8px 12px', borderTop: '1px solid #222' }}>
-          <Link
-            href="/dms"
-            className={`${styles.channel} ${pathname.startsWith('/dms') ? styles.channelActive : ''}`}
-            style={{ textDecoration: 'none' }}
-          >
-            <span className={styles.channelName}>✉️ Direct Messages</span>
-          </Link>
-          <Link
-            href="/profile"
-            className={`${styles.channel} ${pathname === '/profile' ? styles.channelActive : ''}`}
-            style={{ textDecoration: 'none' }}
-          >
-            <span className={styles.channelName}>👤 Profile</span>
-          </Link>
-          <Link
-            href="/journal"
-            className={`${styles.channel} ${pathname === '/journal' ? styles.channelActive : ''}`}
-            style={{ textDecoration: 'none' }}
-          >
-            <span className={styles.channelName}>📓 Journal</span>
-          </Link>
-          <Link
-            href="/learn"
-            className={`${styles.channel} ${pathname === '/learn' ? styles.channelActive : ''}`}
-            style={{ textDecoration: 'none' }}
-          >
-            <span className={styles.channelName}>🎓 Courses</span>
-          </Link>
-          <Link
-            href="/strategy"
-            className={`${styles.channel} ${pathname === '/strategy' ? styles.channelActive : ''}`}
-            style={{ textDecoration: 'none' }}
-          >
-            <span className={styles.channelName}>📈 Strategy Vault</span>
-          </Link>
-        </div>
 
         <div className={styles.userBar}>
           <div className={styles.avatar}>

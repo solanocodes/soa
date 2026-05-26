@@ -4,6 +4,48 @@
   margin: 0 auto;
 }
 
+/* Alert Input */
+.alertInputArea {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.alertInput {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+
+.alertInput:focus {
+  border-color: var(--primary);
+}
+
+.alertInput::placeholder {
+  color: var(--text-muted);
+}
+
+.alertSendBtn {
+  background: var(--primary);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.alertSendBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Tabs */
 .tabs {
   display: flex;
