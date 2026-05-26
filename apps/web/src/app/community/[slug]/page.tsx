@@ -224,50 +224,44 @@ export default function ChannelChatPage() {
   if (embedInfo) {
     return (
       <div className={styles.container}>
-        <div className={styles.feed} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '40px' }}>
-          <div className={styles.message}>
-            <div
-              className={styles.messageAvatar}
-              style={{ background: '#00D084' }}
-            >
-              SS
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1, padding: '60px 24px' }}>
+          <div style={{ maxWidth: '600px', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              {user?.avatar_url ? (
+                <img src={user.avatar_url} alt="" style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#00D084', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '18px', color: '#000' }}>SS</div>
+              )}
+              <span style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '18px' }}>Sean Solano</span>
             </div>
-            <div className={styles.messageBody}>
-              <div className={styles.messageHeader}>
-                <span className={`${styles.authorName} ${styles.authorStaff}`}>
-                  Sean Solano
-                </span>
-                <span style={{ background: '#00D084', color: '#000', fontSize: '10px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', marginLeft: '4px' }}>BOT</span>
-                <span style={{ background: '#5865F2', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', marginLeft: '4px' }}>APP</span>
-              </div>
-              <div style={{ marginTop: '8px', background: 'var(--surface-elevated)', borderLeft: '3px solid var(--primary)', borderRadius: '0 8px 8px 0', padding: '16px', maxWidth: '480px' }}>
-                <h3 style={{ color: 'var(--text)', fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>{embedInfo.title}</h3>
-                {embedInfo.description.split('\n\n').map((p, i) => (
-                  <p key={i} style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.5', marginBottom: '8px' }}>{p}</p>
-                ))}
-                <p style={{ color: 'var(--text-muted)', fontSize: '12px', marginTop: '12px' }}>
-                  If you have issues logging in make sure you&apos;re using the same email you used to book a call with SOA
-                </p>
-                <a
-                  href={embedInfo.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-block',
-                    marginTop: '16px',
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    color: 'var(--text)',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    textDecoration: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  LOGIN ↗
-                </a>
-              </div>
+            <div style={{ background: 'var(--surface-elevated)', borderLeft: '4px solid var(--primary)', borderRadius: '0 12px 12px 0', padding: '28px 32px' }}>
+              <h2 style={{ color: 'var(--text)', fontSize: '22px', fontWeight: 700, marginBottom: '16px' }}>{embedInfo.title}</h2>
+              {embedInfo.description.split('\n\n').map((p, i) => (
+                <p key={i} style={{ color: 'var(--text-secondary)', fontSize: '16px', lineHeight: '1.6', marginBottom: '12px' }}>{p}</p>
+              ))}
+              <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '16px' }}>
+                If you have issues logging in make sure you&apos;re using the same email you used to book a call with SOA
+              </p>
+              <a
+                href={embedInfo.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-block',
+                  marginTop: '20px',
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text)',
+                  padding: '10px 24px',
+                  borderRadius: '6px',
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                LOGIN ↗
+              </a>
             </div>
           </div>
         </div>
