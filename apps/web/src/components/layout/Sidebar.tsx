@@ -95,16 +95,15 @@ export default function Sidebar() {
   };
 
   const ALERT_CHANNELS: Record<string, string> = {
-    'solano-alerts': '/alerts',
-    'demon-alerts': '/alerts',
-    'bryce-alerts': '/alerts',
-    'wealth-alerts': '/alerts',
+    'solano-alerts': '/alerts?tab=solano-alerts',
+    'wealth-alerts': '/alerts?tab=wealth-alerts',
   };
 
   const SPECIAL_CHANNELS: Record<string, string> = {
     'share-your-wins': '/wins',
-    'best-wins': '/wins',
   };
+
+  const HIDDEN_CHANNELS = ['demon-alerts', 'bryce-alerts', 'best-wins'];
 
   const handleChannelClick = (channel: Channel) => {
     const channelTierLevel = getTierLevel(channel.required_tier);
@@ -122,7 +121,7 @@ export default function Sidebar() {
   };
 
   const currentSlug = pathname.split('/community/')[1] || '';
-  const isAlertsPage = pathname === '/alerts';
+  const currentTab = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('tab') : null;
   const isWinsPage = pathname === '/wins';
 
   const displayName = user?.display_name || user?.username || '';
@@ -188,10 +187,11 @@ export default function Sidebar() {
                   }`}
                 >
                   {items.map((ch) => {
+                    if (HIDDEN_CHANNELS.includes(ch.slug)) return null;
                     const locked =
                       getTierLevel(ch.required_tier) > userTierLevel;
                     const active = currentSlug === ch.slug
-                      || (isAlertsPage && !!ALERT_CHANNELS[ch.slug])
+                      || (currentTab === ch.slug)
                       || (isWinsPage && !!SPECIAL_CHANNELS[ch.slug]);
 
                     return (

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { getRelativeTime, getInitials, hasAccess } from '@/lib/utils';
@@ -35,8 +36,6 @@ interface TabConfig {
 const TABS: TabConfig[] = [
   { label: 'All', slug: null },
   { label: 'Solano', slug: 'solano-alerts' },
-  { label: 'Demon', slug: 'demon-alerts' },
-  { label: 'Bryce', slug: 'bryce-alerts' },
   { label: 'Wealth', slug: 'wealth-alerts', requiredTier: 'SOA_WEALTH' },
 ];
 
@@ -55,7 +54,13 @@ function getAvatarColor(name: string): string {
 
 export default function AlertsPage() {
   const user = useAuthStore((s) => s.user);
-  const [activeTab, setActiveTab] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const tabFromUrl = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<string | null>(tabFromUrl);
+
+  useEffect(() => {
+    if (tabFromUrl) setActiveTab(tabFromUrl);
+  }, [tabFromUrl]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
