@@ -104,11 +104,30 @@ export default function Sidebar() {
   };
 
   const EXTERNAL_CHANNELS: Record<string, string> = {
-    'trade-sessions': 'https://soa.app.clientclub.net/courses/library-v2',
-    'futures-lab': 'https://soa.app.clientclub.net/courses/library-v2',
-    'masterclasses': 'https://soa.app.clientclub.net/courses/library-v2',
-    'mastery-course': 'https://soa.app.clientclub.net/courses/library-v2',
     'trade-journal': 'https://app.simplyoptionsacademy.com',
+  };
+
+  const EMBED_CHANNELS: Record<string, { title: string; description: string; url: string }> = {
+    'trade-sessions': {
+      title: 'Full Live Trade Recordings',
+      description: 'You have full access to ALL trading sessions we have here at Simply Options Academy.\n\nThis is where you will get the best breakdown of how I think when I am trading.',
+      url: 'https://soa.app.clientclub.net/courses/library-v2',
+    },
+    'futures-lab': {
+      title: 'SOA Futures Lab',
+      description: 'The SOA Futures Lab is a project dedicated to getting you from 0 knowledge about futures to getting funded and receiving payouts!\n\nThis workshop shows you everything you need to know to get funded fully from start to finish. Risk, strategy, rules, everything you need to succeed as a futures trader.\n\n0 -> Funded -> Payout',
+      url: 'https://soa.app.clientclub.net/courses/library-v2',
+    },
+    'masterclasses': {
+      title: 'Masterclasses',
+      description: 'Anytime I give you guys a masterclass (15+ minutes long) I will categorize every single one and have them neatly placed for you.\n\nSo that anytime you need any help with either the SOA strategy, journaling, psychology etc you will know exactly where to go!',
+      url: 'https://soa.app.clientclub.net/courses/library-v2',
+    },
+    'mastery-course': {
+      title: 'Simply Options Academy Foundation Course',
+      description: 'Once you guys get here make sure you check your email for the instructions on getting access to the foundations course. After you have fully completed the Simply Options Course, message me in our 1 on 1 chat and we will discuss the next steps!\n\nMeanwhile, make sure you guys are showing up to the masterclasses, Q&As and Live Trading Sessions!',
+      url: 'https://soa.app.clientclub.net/courses/library-v2',
+    },
   };
 
   const HIDDEN_CHANNELS = ['demon-alerts', 'bryce-alerts', 'best-wins'];
@@ -119,6 +138,10 @@ export default function Sidebar() {
 
     if (EXTERNAL_CHANNELS[channel.slug]) {
       window.open(EXTERNAL_CHANNELS[channel.slug], '_blank');
+      return;
+    }
+    if (EMBED_CHANNELS[channel.slug]) {
+      router.push(`/community/${channel.slug}`);
       return;
     }
     if (ALERT_CHANNELS[channel.slug]) {

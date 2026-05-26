@@ -9,6 +9,29 @@ import { useAuthStore } from '@/lib/store';
 import { getRelativeTime, getInitials } from '@/lib/utils';
 import styles from './page.module.css';
 
+const EMBED_CHANNELS: Record<string, { title: string; description: string; url: string }> = {
+  'trade-sessions': {
+    title: 'Full Live Trade Recordings',
+    description: 'You have full access to ALL trading sessions we have here at Simply Options Academy.\n\nThis is where you will get the best breakdown of how I think when I am trading.\n\nIf you have issues logging in make sure you\'re using the same email you used to book a call with SOA',
+    url: 'https://soa.app.clientclub.net/courses/library-v2',
+  },
+  'futures-lab': {
+    title: 'SOA Futures Lab',
+    description: 'The SOA Futures Lab is a project dedicated to getting you from 0 knowledge about futures to getting funded and receiving payouts!\n\nThis workshop shows you everything you need to know to get funded fully from start to finish. Risk, strategy, rules, everything you need to succeed as a futures trader.\n\n0 -> Funded -> Payout',
+    url: 'https://soa.app.clientclub.net/courses/library-v2',
+  },
+  'masterclasses': {
+    title: 'Masterclasses',
+    description: 'Anytime I give you guys a masterclass (15+ minutes long) I will categorize every single one and have them neatly placed for you.\n\nSo that anytime you need any help with either the SOA strategy, journaling, psychology etc you will know exactly where to go!',
+    url: 'https://soa.app.clientclub.net/courses/library-v2',
+  },
+  'mastery-course': {
+    title: 'Simply Options Academy Foundation Course',
+    description: 'Once you guys get here make sure you check your email for the instructions on getting access to the foundations course. After you have fully completed the Simply Options Course, message me in our 1 on 1 chat and we will discuss the next steps!\n\nMeanwhile, make sure you guys are showing up to the masterclasses, Q&As and Live Trading Sessions!',
+    url: 'https://soa.app.clientclub.net/courses/library-v2',
+  },
+};
+
 interface Channel {
   id: string;
   name: string;
@@ -192,6 +215,61 @@ export default function ChannelChatPage() {
     );
   }
 
+  const embedInfo = EMBED_CHANNELS[slug];
+  if (embedInfo) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.feed} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '40px' }}>
+          <div className={styles.message}>
+            <div
+              className={styles.messageAvatar}
+              style={{ background: '#00D084' }}
+            >
+              SS
+            </div>
+            <div className={styles.messageBody}>
+              <div className={styles.messageHeader}>
+                <span className={`${styles.authorName} ${styles.authorStaff}`}>
+                  Sean Solano
+                </span>
+                <span style={{ background: '#00D084', color: '#000', fontSize: '10px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', marginLeft: '4px' }}>BOT</span>
+                <span style={{ background: '#5865F2', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', marginLeft: '4px' }}>APP</span>
+              </div>
+              <div style={{ marginTop: '8px', background: 'var(--surface-elevated)', borderLeft: '3px solid var(--primary)', borderRadius: '0 8px 8px 0', padding: '16px', maxWidth: '480px' }}>
+                <h3 style={{ color: 'var(--text)', fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>{embedInfo.title}</h3>
+                {embedInfo.description.split('\n\n').map((p, i) => (
+                  <p key={i} style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.5', marginBottom: '8px' }}>{p}</p>
+                ))}
+                <p style={{ color: 'var(--text-muted)', fontSize: '12px', marginTop: '12px' }}>
+                  If you have issues logging in make sure you&apos;re using the same email you used to book a call with SOA
+                </p>
+                <a
+                  href={embedInfo.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-block',
+                    marginTop: '16px',
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text)',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  LOGIN ↗
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (channelError || msgsError) {
     return (
       <div className={styles.container}>
@@ -232,14 +310,24 @@ export default function ChannelChatPage() {
         {messages.map((msg) => {
           const authorName = msg.author?.display_name || msg.author?.username || 'Unknown';
           const isStaff = msg.author?.is_admin || msg.author?.is_coach;
+          const avatarUrl = msg.author?.avatar_url;
           return (
             <div key={msg.id} className={styles.message}>
-              <div
-                className={styles.messageAvatar}
-                style={{ background: getAvatarColor(authorName) }}
-              >
-                {getInitials(authorName)}
-              </div>
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt=""
+                  className={styles.messageAvatar}
+                  style={{ objectFit: 'cover' }}
+                />
+              ) : (
+                <div
+                  className={styles.messageAvatar}
+                  style={{ background: getAvatarColor(authorName) }}
+                >
+                  {getInitials(authorName)}
+                </div>
+              )}
               <div className={styles.messageBody}>
                 <div className={styles.messageHeader}>
                   <span
