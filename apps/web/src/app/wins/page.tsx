@@ -125,61 +125,109 @@ export default function WinsPage() {
     );
   }
 
-  const handleUploadWin = async (file: File) => {
+  const [winText, setWinText] = useState('');
+  const [winImage, setWinImage] = useState<string | null>(null);
+
+  const handlePostWin = async () => {
+    if (!winText.trim() && !winImage) return;
     setUploading(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const dataUrl = reader.result as string;
-        const { data } = await api.post('/wins', {
-          caption: null,
-          screenshot_url: dataUrl,
-        });
-        if (data.win) {
-          setWins((prev) => [{ ...data.win, author: { id: user?.id || '', username: user?.username || '', display_name: user?.display_name || null, avatar_url: user?.avatar_url || null } }, ...prev]);
-        }
-        setUploading(false);
-      };
-      reader.readAsDataURL(file);
+      const { data } = await api.post('/wins', {
+        caption: winText.trim() || null,
+        screenshot_url: winImage || null,
+      });
+      if (data.win) {
+        setWins((prev) => [{ ...data.win, author: { id: user?.id || '', username: user?.username || '', display_name: user?.display_name || null, avatar_url: user?.avatar_url || null } }, ...prev]);
+      }
+      setWinText('');
+      setWinImage(null);
     } catch {
+      // silent
+    } finally {
       setUploading(false);
     }
   };
+
+  const handleWinPaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => setWinImage(reader.result as string);
+        reader.readAsDataURL(file);
+        return;
+      }
+    }
+  };
+
+  const handleWinFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setWinImage(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const filteredWins = wins.filter(w =>
+    w.caption || (w.screenshot_url && w.screenshot_url.startsWith('http'))
+  );
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Student Wins</h1>
-        {totalCount > 0 && (
-          <span className={styles.countBadge}>{totalCount}</span>
-        )}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleUploadWin(file);
-          }}
-        />
-        <button
-          className={styles.uploadBtn}
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-        >
-          {uploading ? 'Uploading...' : '+ Share Your Win'}
-        </button>
       </div>
 
-      {wins.length === 0 ? (
+      <div className={styles.composeArea}>
+        <div className={styles.composeRow}>
+          <input
+            className={styles.composeInput}
+            placeholder="Share your win! What did you accomplish today?"
+            value={winText}
+            onChange={(e) => setWinText(e.target.value)}
+            onPaste={handleWinPaste}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handlePostWin(); } }}
+          />
+          <div className={styles.composeActions}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleWinFileSelect}
+            />
+            <button className={styles.composeImgBtn} onClick={() => fileInputRef.current?.click()} title="Add image">
+              📷
+            </button>
+            <button
+              className={styles.composeSendBtn}
+              onClick={handlePostWin}
+              disabled={(!winText.trim() && !winImage) || uploading}
+            >
+              {uploading ? '...' : 'Post'}
+            </button>
+          </div>
+        </div>
+        {winImage && (
+          <div className={styles.composePreview}>
+            <img src={winImage} alt="Preview" />
+            <button className={styles.composePreviewRemove} onClick={() => setWinImage(null)}>×</button>
+          </div>
+        )}
+      </div>
+
+      {filteredWins.length === 0 ? (
         <div className={styles.centerState}>
           <span>No wins posted yet. Be the first!</span>
         </div>
       ) : (
         <>
           <div className={styles.grid}>
-            {wins.map((win) => {
+            {filteredWins.map((win) => {
               const isHistorical = win.is_historical && !win.author?.username;
               const name = win.author?.display_name || win.author?.username || '';
 
