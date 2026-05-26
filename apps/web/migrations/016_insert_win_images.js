@@ -1,0 +1,80 @@
+const WIN_IMAGES = [
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f5e933b6ef27a25dc.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f480ea4724fd92f52.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2fd56085c32cb63ec5.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2e480ea40104d92f17.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f480ea400e7d92f44.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2feb0d1a12eaceb2a0.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2ffa89c733d42681e3.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2efa89c7630b2681b6.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2ed5608558fdb63eb4.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f5faeb39da0d4d58a.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2fd119a532575d992b.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f480ea41654d92f48.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f5e933badc47a25dd.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2e5faeb3d657d4d54e.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f480ea46ce8d92f49.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2ffa89c78d0e2681ec.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2efa89c723482681b3.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f480ea411dad92f53.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2ed5608530b6b63e9e.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2ffa89c7152b2681df.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f480ea4427ad92f51.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f480ea40391d92f45.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f4d506d463663a08c.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f5e933bd80e7a2613.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2efa89c70a692681bb.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f4d506d603f63a096.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f480ea4e7e4d92f50.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2ffa89c7dec02681e7.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f5faeb396e8d4d581.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f5e933bd7dd7a25df.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2ffa89c750592681e6.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2ed56085f9acb63eac.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f5faeb34467d4d590.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f480ea4774bd92f46.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2ffa89c734032681e4.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2fd119a5f8115d992a.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2e5e933b52687a25cc.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f5faeb35ef0d4d57a.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f480ea4170bd92f47.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2efa89c7e3182681db.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2e4d506dacdc63a05c.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2feb0d1a0e88ceb2a2.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2e5e933b2d707a25cd.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2ed119a5979a5d990d.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2ffa89c778052681de.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2feb0d1a6c9bceb2a6.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2ed56085e68cb63ea5.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2efa89c727802681c2.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2efa89c742cc2681dc.png',
+  'https://storage.googleapis.com/msgsndr/MbIoQggFbqZrs9ZTokOl/media/69792f2f4d506d388963a087.png',
+  'https://assets.cdn.filesafe.space/MbIoQggFbqZrs9ZTokOl/media/69b0428e7fc07cd52a594b0b.png',
+  'https://assets.cdn.filesafe.space/MbIoQggFbqZrs9ZTokOl/media/69b0428e0c9c886194fbef1a.png',
+  'https://assets.cdn.filesafe.space/MbIoQggFbqZrs9ZTokOl/media/69b0428e8d3eae1228dd290a.png',
+  'https://assets.cdn.filesafe.space/MbIoQggFbqZrs9ZTokOl/media/69b04572c509a036686d5bb8.webp',
+  'https://assets.cdn.filesafe.space/MbIoQggFbqZrs9ZTokOl/media/69b0457217209debab18c75a.webp',
+  'https://assets.cdn.filesafe.space/MbIoQggFbqZrs9ZTokOl/media/69b04572ddc8c7042deb91c1.webp',
+  'https://assets.cdn.filesafe.space/MbIoQggFbqZrs9ZTokOl/media/69b04572ddc8c77458eb91c2.webp',
+  'https://assets.cdn.filesafe.space/MbIoQggFbqZrs9ZTokOl/media/69b04572034886269dee43c6.webp',
+];
+
+exports.up = async function(knex) {
+  for (const url of WIN_IMAGES) {
+    try {
+      await knex('student_wins').insert({
+        screenshot_url: url,
+        win_type: 'trade_win',
+        is_verified: true,
+        is_featured: false,
+        reaction_count: 0,
+        is_historical: true,
+        original_author_name: 'SOA Student',
+      });
+    } catch (e) {
+      // skip duplicates
+    }
+  }
+};
+
+exports.down = async function(knex) {};
