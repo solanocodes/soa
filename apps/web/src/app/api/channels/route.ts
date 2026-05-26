@@ -16,6 +16,9 @@ function hasAccess(userTier: Tier, requiredTier: Tier): boolean {
   return TIER_HIERARCHY[userTier] >= TIER_HIERARCHY[requiredTier];
 }
 
+// Channel names come from the database. If you update channel names in the
+// seed file (001_channels_and_admin.js), you need to re-run the seed or run
+// migration 012_update_channels.js to update existing records.
 export async function GET(req: NextRequest) {
   try {
     const authUser = await requireAuth(req);

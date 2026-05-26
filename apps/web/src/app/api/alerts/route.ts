@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/database';
 import { requireAuth, errorResponse } from '@/lib/api-helpers';
 
+// Returns ALL alerts (both historical and non-historical) by default.
+// If the alerts page shows empty, the historical data likely hasn't been
+// imported into the Railway database yet — the import scripts need to be
+// run against the production DB, or the data files need to be uploaded.
 export async function GET(req: NextRequest) {
   try {
     await requireAuth(req);

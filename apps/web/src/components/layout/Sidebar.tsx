@@ -8,39 +8,6 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import styles from './Sidebar.module.css';
 
-interface NavItem {
-  label: string;
-  href: string;
-  icon: string;
-  adminOnly?: boolean;
-}
-
-const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
-  {
-    title: 'Main',
-    items: [
-      { label: 'Alerts', href: '/alerts', icon: '⚡' },
-      { label: 'Wins', href: '/wins', icon: '🏆' },
-      { label: 'DMs', href: '/dms', icon: '✉' },
-    ],
-  },
-  {
-    title: 'Learn',
-    items: [
-      { label: 'Courses', href: '/learn', icon: '🎓' },
-      { label: 'Strategy Vault', href: '/strategy', icon: '📈' },
-      { label: 'Journal', href: '/journal', icon: '📓' },
-    ],
-  },
-  {
-    title: 'Account',
-    items: [
-      { label: 'Profile', href: '/profile', icon: '👤' },
-      { label: 'Admin', href: '/admin', icon: '⚙', adminOnly: true },
-    ],
-  },
-];
-
 interface Channel {
   id: string;
   name: string;
@@ -222,39 +189,6 @@ export default function Sidebar() {
             );
           })}
 
-          {/* Nav sections */}
-          {NAV_SECTIONS.map((section) => (
-            <div key={section.title} className={styles.category}>
-              <div className={styles.categoryHeader}>
-                <span className={styles.categoryArrow} style={{ visibility: 'hidden' }}>
-                  &#9660;
-                </span>
-                <span className={styles.categoryName}>{section.title}</span>
-              </div>
-              <div className={styles.categoryChannels}>
-                {section.items
-                  .filter((item) => !item.adminOnly || user?.is_admin)
-                  .map((item) => {
-                    const active =
-                      pathname === item.href ||
-                      pathname.startsWith(item.href + '/');
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`${styles.channel} ${
-                          active ? styles.channelActive : ''
-                        }`}
-                        style={{ textDecoration: 'none' }}
-                      >
-                        <span className={styles.channelEmoji}>{item.icon}</span>
-                        <span className={styles.channelName}>{item.label}</span>
-                      </Link>
-                    );
-                  })}
-              </div>
-            </div>
-          ))}
         </div>
 
         <div className={styles.userBar}>
@@ -265,13 +199,27 @@ export default function Sidebar() {
             <div className={styles.username}>
               {user?.username || 'Loading...'}
             </div>
-            <span
-              className={`${styles.tierBadge} ${getTierBadgeClass(
-                user?.tier || 'FREE'
-              )}`}
-            >
-              {tierLabel}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span
+                className={`${styles.tierBadge} ${getTierBadgeClass(
+                  user?.tier || 'FREE'
+                )}`}
+              >
+                {tierLabel}
+              </span>
+              {user?.is_admin && (
+                <Link
+                  href="/admin"
+                  style={{
+                    fontSize: '11px',
+                    color: '#888',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Admin
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </aside>
