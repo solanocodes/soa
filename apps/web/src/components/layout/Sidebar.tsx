@@ -101,6 +101,7 @@ export default function Sidebar() {
 
   const SPECIAL_CHANNELS: Record<string, string> = {
     'share-your-wins': '/wins',
+    'direct-messages': '/dms',
   };
 
   const EXTERNAL_CHANNELS: Record<string, string> = {};
@@ -161,6 +162,7 @@ export default function Sidebar() {
   const currentSlug = pathname.split('/community/')[1] || '';
   const currentTab = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('tab') : null;
   const isWinsPage = pathname === '/wins';
+  const isDmsPage = pathname.startsWith('/dms');
 
   const displayName = user?.display_name || user?.username || '';
   const TIER_LABELS: Record<string, string> = {
@@ -230,7 +232,8 @@ export default function Sidebar() {
                       getTierLevel(ch.required_tier) > userTierLevel;
                     const active = currentSlug === ch.slug
                       || (currentTab === ch.slug)
-                      || (isWinsPage && !!SPECIAL_CHANNELS[ch.slug]);
+                      || (isWinsPage && ch.slug === 'share-your-wins')
+                      || (isDmsPage && ch.slug === 'direct-messages');
 
                     return (
                       <div
