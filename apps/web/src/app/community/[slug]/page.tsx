@@ -30,6 +30,11 @@ const EMBED_CHANNELS: Record<string, { title: string; description: string; url: 
     description: 'Once you guys get here make sure you check your email for the instructions on getting access to the foundations course. After you have fully completed the Simply Options Course, message me in our 1 on 1 chat and we will discuss the next steps!\n\nMeanwhile, make sure you guys are showing up to the masterclasses, Q&As and Live Trading Sessions!',
     url: 'https://soa.app.clientclub.net/courses/library-v2',
   },
+  'trade-journal': {
+    title: 'SOA Trading Journal',
+    description: 'Track and analyze your trades in the SOA Trading Journal.\n\nLog every trade, review your performance, and identify patterns in your trading to continuously improve.',
+    url: 'https://app.simplyoptionsacademy.com',
+  },
 };
 
 interface Channel {
