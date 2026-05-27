@@ -57,6 +57,8 @@ export default function WinsPage() {
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [winText, setWinText] = useState('');
+  const [winImage, setWinImage] = useState<string | null>(null);
 
   const fetchWins = useCallback(async (cursorVal?: string | null) => {
     let url = '/wins?limit=20';
@@ -124,9 +126,6 @@ export default function WinsPage() {
       </div>
     );
   }
-
-  const [winText, setWinText] = useState('');
-  const [winImage, setWinImage] = useState<string | null>(null);
 
   const handlePostWin = async () => {
     if (!winText.trim() && !winImage) return;
