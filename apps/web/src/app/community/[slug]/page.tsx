@@ -56,6 +56,8 @@ interface Message {
   };
 }
 
+const ADMIN_ONLY_CHANNELS = ['welcome', 'announcements', 'schedule'];
+
 const AVATAR_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
   '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F',
@@ -99,6 +101,8 @@ export default function ChannelChatPage() {
       return found;
     },
     enabled: !!slug,
+    staleTime: 60000,
+    gcTime: 300000,
   });
 
   // Fetch initial messages
@@ -113,7 +117,19 @@ export default function ChannelChatPage() {
       return msgs;
     },
     enabled: !!channel?.id,
+    staleTime: 60000,
+    gcTime: 300000,
   });
+
+  // Delete message handler (admin only)
+  const handleDeleteMessage = async (msgId: string) => {
+    try {
+      await api.delete(`/messages/${msgId}`);
+      setMessages((prev) => prev.filter((m) => m.id !== msgId));
+    } catch {
+      // silent fail
+    }
+  };
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -378,6 +394,27 @@ export default function ChannelChatPage() {
                   <span className={styles.timestamp}>
                     {getRelativeTime(msg.created_at)}
                   </span>
+                  {user?.is_admin && (
+                    <button
+                      onClick={() => handleDeleteMessage(msg.id)}
+                      title="Delete message"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        padding: '0 4px',
+                        lineHeight: 1,
+                        opacity: 0.5,
+                        transition: 'opacity 0.15s, color 0.15s',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = 'var(--danger)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                    >
+                      &#x2715;
+                    </button>
+                  )}
                 </div>
                 <div className={styles.messageContent}>
                   {msg.content.includes('[image]') ? (
@@ -404,38 +441,46 @@ export default function ChannelChatPage() {
           `${typingUsers.join(', ')} ${typingUsers.length === 1 ? 'is' : 'are'} typing...`}
       </div>
 
-      <div className={styles.inputArea}>
-        {pastedImage && (
-          <div style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src={pastedImage} alt="Preview" style={{ height: '60px', borderRadius: '6px' }} />
+      {ADMIN_ONLY_CHANNELS.includes(slug) && !user?.is_admin ? (
+        <div className={styles.inputArea}>
+          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px', padding: '8px 0' }}>
+            Only admins can post in this channel.
+          </div>
+        </div>
+      ) : (
+        <div className={styles.inputArea}>
+          {pastedImage && (
+            <div style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src={pastedImage} alt="Preview" style={{ height: '60px', borderRadius: '6px' }} />
+              <button
+                onClick={() => setPastedImage(null)}
+                style={{ background: 'var(--danger)', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}
+              >
+                Remove
+              </button>
+            </div>
+          )}
+          <div className={styles.inputRow}>
+            <input
+              className={styles.textInput}
+              type="text"
+              placeholder={`Message #${channel?.name || slug}...`}
+              value={newMessage}
+              onChange={(e) => handleInputChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+              disabled={sending}
+            />
             <button
-              onClick={() => setPastedImage(null)}
-              style={{ background: 'var(--danger)', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}
+              className={styles.sendBtn}
+              onClick={handleSend}
+              disabled={(!newMessage.trim() && !pastedImage) || sending}
             >
-              Remove
+              Send
             </button>
           </div>
-        )}
-        <div className={styles.inputRow}>
-          <input
-            className={styles.textInput}
-            type="text"
-            placeholder={`Message #${channel?.name || slug}...`}
-            value={newMessage}
-            onChange={(e) => handleInputChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
-            disabled={sending}
-          />
-          <button
-            className={styles.sendBtn}
-            onClick={handleSend}
-            disabled={(!newMessage.trim() && !pastedImage) || sending}
-          >
-            Send
-          </button>
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -28,9 +28,12 @@ export async function GET(req: NextRequest) {
       .where({ is_active: true })
       .orderBy('position', 'asc');
 
-    const accessibleChannels = channels.filter((channel) =>
-      hasAccess(userTier, channel.required_tier as Tier)
-    );
+    // Admins see all channels regardless of tier
+    const accessibleChannels = authUser.isAdmin
+      ? channels
+      : channels.filter((channel) =>
+          hasAccess(userTier, channel.required_tier as Tier)
+        );
 
     return NextResponse.json({ channels: accessibleChannels });
   } catch (err: any) {
