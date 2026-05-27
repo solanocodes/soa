@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { getRelativeTime, getInitials, hasAccess } from '@/lib/utils';
@@ -54,15 +53,17 @@ function getAvatarColor(name: string): string {
 
 export default function AlertsPage() {
   const user = useAuthStore((s) => s.user);
-  const searchParams = useSearchParams();
-  const tabFromUrl = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<string | null>(tabFromUrl);
+  const [activeTab, setActiveTab] = useState<string | null>(null);
   const [newAlert, setNewAlert] = useState('');
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    if (tabFromUrl) setActiveTab(tabFromUrl);
-  }, [tabFromUrl]);
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab) setActiveTab(tab);
+    }
+  }, []);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
