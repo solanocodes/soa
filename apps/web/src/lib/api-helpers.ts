@@ -25,9 +25,22 @@ export async function getAuthUser(req: NextRequest) {
 }
 
 export async function requireAuth(req: NextRequest) {
-  const user = await getAuthUser(req);
-  if (!user) throw new AuthError('Unauthorized', 401);
-  return user;
+  const tokenUser = await getAuthUser(req);
+  if (!tokenUser) throw new AuthError('Unauthorized', 401);
+
+  const dbUser = await db('users')
+    .where({ id: tokenUser.userId })
+    .select('id', 'tier', 'is_admin', 'is_coach')
+    .first();
+
+  if (!dbUser) throw new AuthError('User not found', 401);
+
+  return {
+    userId: dbUser.id,
+    tier: dbUser.tier,
+    isAdmin: dbUser.is_admin,
+    isCoach: dbUser.is_coach,
+  };
 }
 
 export class AuthError extends Error {

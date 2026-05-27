@@ -101,8 +101,8 @@ export default function ChannelChatPage() {
       return found;
     },
     enabled: !!slug,
-    staleTime: 60000,
-    gcTime: 300000,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 
   // Fetch initial messages
@@ -117,8 +117,8 @@ export default function ChannelChatPage() {
       return msgs;
     },
     enabled: !!channel?.id,
-    staleTime: 60000,
-    gcTime: 300000,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 
   // Delete message handler (admin only)

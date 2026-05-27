@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { connectSocket } from '@/lib/socket';
 import { useAuthStore } from '@/lib/store';
-import { getRelativeTime } from '@/lib/utils';
+import { getRelativeTime, getInitials } from '@/lib/utils';
 import styles from './page.module.css';
 
 interface DmMessage {
@@ -240,28 +240,27 @@ export default function DmChatPage() {
         )}
 
         {messages.map((msg) => {
-          const isSent = msg.sender_id === user?.id;
+          const senderName = msg.sender?.display_name || msg.sender?.username || 'Unknown';
+          const avatarUrl = msg.sender?.avatar_url;
+          const isStaff = msg.sender_id === user?.id && (user?.is_admin || user?.is_coach);
           return (
-            <div
-              key={msg.id}
-              className={`${styles.messageRow} ${
-                isSent ? styles.messageRowSent : styles.messageRowReceived
-              }`}
-            >
-              <div
-                className={`${styles.bubble} ${
-                  isSent ? styles.bubbleSent : styles.bubbleReceived
-                }`}
-              >
-                {msg.is_ai_generated && (
-                  <div className={styles.aiBadge}>
-                    AI {msg.was_edited_before_send ? '(edited)' : ''}
-                  </div>
-                )}
-                {msg.content}
-                <span className={styles.bubbleTime}>
-                  {getRelativeTime(msg.created_at)}
-                </span>
+            <div key={msg.id} className={styles.message}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className={styles.messageAvatar} style={{ objectFit: 'cover' }} />
+              ) : (
+                <div className={styles.messageAvatar} style={{ background: '#4ECDC4' }}>
+                  {getInitials(senderName)}
+                </div>
+              )}
+              <div className={styles.messageBody}>
+                <div className={styles.messageHeader}>
+                  <span className={`${styles.authorName} ${isStaff ? styles.authorStaff : ''}`}>
+                    {senderName}
+                  </span>
+                  {msg.is_ai_generated && <span className={styles.aiBadge}>AI</span>}
+                  <span className={styles.timestamp}>{getRelativeTime(msg.created_at)}</span>
+                </div>
+                <div className={styles.messageContent}>{msg.content}</div>
               </div>
             </div>
           );
