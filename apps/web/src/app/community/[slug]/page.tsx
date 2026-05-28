@@ -147,7 +147,7 @@ export default function ChannelChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Poll for new messages every 1 second for real-time feel
+  // Poll for new messages every 3 seconds
   useEffect(() => {
     if (!channel?.id) return;
     const interval = setInterval(async () => {
@@ -156,7 +156,7 @@ export default function ChannelChatPage() {
         const msgs: Message[] = data.messages ?? data;
         setMessages(msgs.reverse());
       } catch {}
-    }, 1000);
+    }, 3000);
     return () => clearInterval(interval);
   }, [channel?.id]);
 
