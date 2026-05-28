@@ -62,7 +62,7 @@ export default function DmChatPage() {
       .get(`/dms/threads/${threadId}/messages`)
       .then(({ data }) => {
         const msgs: DmMessage[] = data.messages ?? data;
-        setMessages(msgs);
+        setMessages(msgs.reverse());
       })
       .catch(() => setError('Failed to load messages'))
       .finally(() => setLoading(false));
