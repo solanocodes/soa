@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { getRelativeTime, TIER_COLORS, TIER_LABELS } from '@/lib/utils';
@@ -35,6 +35,11 @@ export default function AdminPage() {
   const [userCursor, setUserCursor] = useState<string | null>(null);
   const [hasMoreUsers, setHasMoreUsers] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [brandName, setBrandName] = useState('SOA');
+  const [brandSub, setBrandSub] = useState('Simply Options Academy');
+  const [brandLogo, setBrandLogo] = useState('');
+  const [brandSaving, setBrandSaving] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [editTier, setEditTier] = useState('');
   const [editAdmin, setEditAdmin] = useState(false);
@@ -49,9 +54,14 @@ export default function AdminPage() {
     Promise.all([
       api.get('/admin/dashboard'),
       api.get('/admin/users?limit=20'),
+      api.get('/admin/settings'),
     ])
-      .then(([dashRes, usersRes]) => {
+      .then(([dashRes, usersRes, settingsRes]) => {
         setStats(dashRes.data);
+        const s = settingsRes.data.settings ?? {};
+        if (s.app_name) setBrandName(s.app_name);
+        if (s.app_subtitle) setBrandSub(s.app_subtitle);
+        if (s.logo_url) setBrandLogo(s.logo_url);
         const userList: AdminUser[] = usersRes.data.users ?? usersRes.data;
         setUsers(userList);
         setUserCursor(
@@ -114,9 +124,55 @@ export default function AdminPage() {
     );
   }
 
+  const handleSaveBranding = async () => {
+    setBrandSaving(true);
+    try {
+      await api.post('/admin/settings', { app_name: brandName, app_subtitle: brandSub, logo_url: brandLogo });
+    } catch {}
+    setBrandSaving(false);
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setBrandLogo(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Admin Dashboard</h1>
+
+      <div style={{ background: 'var(--surface)', borderRadius: '12px', padding: '20px', marginBottom: '24px', border: '1px solid var(--border)' }}>
+        <h3 style={{ color: 'var(--text)', marginBottom: '16px', fontSize: '16px' }}>App Branding</h3>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <div style={{ flex: '1', minWidth: '200px' }}>
+            <label style={{ display: 'block', color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '4px' }}>App Name</label>
+            <input value={brandName} onChange={(e) => setBrandName(e.target.value)} style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '6px', padding: '8px 12px', color: 'var(--text)', fontSize: '14px' }} />
+          </div>
+          <div style={{ flex: '1', minWidth: '200px' }}>
+            <label style={{ display: 'block', color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '4px' }}>Subtitle</label>
+            <input value={brandSub} onChange={(e) => setBrandSub(e.target.value)} style={{ width: '100%', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '6px', padding: '8px 12px', color: 'var(--text)', fontSize: '14px' }} />
+          </div>
+          <div style={{ flex: '1', minWidth: '200px' }}>
+            <label style={{ display: 'block', color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '4px' }}>Logo</label>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {brandLogo && <img src={brandLogo} alt="Logo" style={{ height: '36px', borderRadius: '4px' }} />}
+              <input ref={logoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoUpload} />
+              <button onClick={() => logoInputRef.current?.click()} style={{ background: 'var(--surface-elevated)', border: '1px solid var(--border)', borderRadius: '6px', padding: '8px 12px', color: 'var(--text-secondary)', fontSize: '13px', cursor: 'pointer' }}>
+                {brandLogo ? 'Change' : 'Upload Logo'}
+              </button>
+              {brandLogo && <button onClick={() => setBrandLogo('')} style={{ background: 'none', border: 'none', color: 'var(--danger)', fontSize: '12px', cursor: 'pointer' }}>Remove</button>}
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <button onClick={handleSaveBranding} disabled={brandSaving} style={{ background: 'var(--primary)', color: '#000', border: 'none', borderRadius: '6px', padding: '8px 20px', fontWeight: 600, fontSize: '14px', cursor: 'pointer', opacity: brandSaving ? 0.5 : 1 }}>
+              {brandSaving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {stats && (
         <div className={styles.statsGrid}>

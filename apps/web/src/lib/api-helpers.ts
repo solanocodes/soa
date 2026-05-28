@@ -27,6 +27,12 @@ export async function getAuthUser(req: NextRequest) {
 export async function requireAuth(req: NextRequest) {
   const tokenUser = await getAuthUser(req);
   if (!tokenUser) throw new AuthError('Unauthorized', 401);
+  return tokenUser;
+}
+
+export async function requireAuthFresh(req: NextRequest) {
+  const tokenUser = await getAuthUser(req);
+  if (!tokenUser) throw new AuthError('Unauthorized', 401);
 
   const dbUser = await db('users')
     .where({ id: tokenUser.userId })

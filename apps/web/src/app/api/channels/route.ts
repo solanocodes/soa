@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/database';
-import { requireAuth, errorResponse } from '@/lib/api-helpers';
+import { requireAuthFresh as requireAuth, errorResponse } from '@/lib/api-helpers';
 
 const TIERS = ['FREE', 'SOA_CORE', 'SOA_WEALTH', 'BOT_PRODUCT'] as const;
 type Tier = (typeof TIERS)[number];

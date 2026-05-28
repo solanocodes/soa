@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/database';
-import { requireAuth, errorResponse } from '@/lib/api-helpers';
+import { requireAuthFresh as requireAuth, errorResponse } from '@/lib/api-helpers';
 
 function classifyAlertType(content: string): string {
   const lower = content.toLowerCase();

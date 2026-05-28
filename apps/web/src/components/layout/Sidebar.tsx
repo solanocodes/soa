@@ -58,6 +58,15 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
+  const { data: branding } = useQuery<Record<string, string>>({
+    queryKey: ['app-settings'],
+    queryFn: async () => {
+      const { data } = await api.get('/admin/settings');
+      return data.settings ?? {};
+    },
+    staleTime: 300000,
+  });
+
   const { data: channels = [] } = useQuery<Channel[]>({
     queryKey: ['channels'],
     queryFn: async () => {
@@ -199,10 +208,14 @@ export default function Sidebar() {
         className={`${styles.sidebar} ${mobileOpen ? styles.sidebarOpen : ''}`}
       >
         <div className={styles.header}>
-          <div>
-            <div className={styles.logoText}>SOA</div>
-            <div className={styles.logoSub}>Simply Options Academy</div>
-          </div>
+          {branding?.logo_url ? (
+            <img src={branding.logo_url} alt={branding?.app_name || 'SOA'} style={{ maxHeight: '40px', maxWidth: '200px', objectFit: 'contain' }} />
+          ) : (
+            <div>
+              <div className={styles.logoText}>{branding?.app_name || 'SOA'}</div>
+              <div className={styles.logoSub}>{branding?.app_subtitle || 'Simply Options Academy'}</div>
+            </div>
+          )}
         </div>
 
         <div className={styles.channelList}>

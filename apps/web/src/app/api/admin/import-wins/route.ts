@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/database';
-import { requireAuth, errorResponse } from '@/lib/api-helpers';
+import { requireAuthFresh as requireAuth, errorResponse } from '@/lib/api-helpers';
 
 export async function POST(req: NextRequest) {
   try {
