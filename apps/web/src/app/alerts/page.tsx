@@ -102,7 +102,7 @@ export default function AlertsPage() {
     fetchAlerts(activeTab)
       .then(({ items, nextCursor }) => {
         if (cancelled) return;
-        setAlerts(items);
+        setAlerts(items.reverse());
         setCursor(nextCursor);
         setHasMore(!!nextCursor);
       })
@@ -112,18 +112,42 @@ export default function AlertsPage() {
     return () => { cancelled = true; };
   }, [activeTab, fetchAlerts, user]);
 
+  const [pastedImage, setPastedImage] = useState<string | null>(null);
+
+  const handleAlertPaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => setPastedImage(reader.result as string);
+        reader.readAsDataURL(file);
+        return;
+      }
+    }
+  };
+
   const handleSendAlert = async () => {
-    if (!newAlert.trim() || sending) return;
+    if (!newAlert.trim() && !pastedImage) return;
+    if (sending) return;
     setSending(true);
     try {
       const channelSlug = activeTab || 'solano-alerts';
+      let content = newAlert.trim();
+      if (pastedImage) {
+        content = content ? `${content}\n[image]${pastedImage}[/image]` : `[image]${pastedImage}[/image]`;
+      }
       const { data } = await api.post('/alerts', {
-        content: newAlert.trim(),
+        content,
         alert_type: 'trade',
         channel_slug: channelSlug,
       });
-      setAlerts((prev) => [data.alert, ...prev]);
+      setAlerts((prev) => [...prev, data.alert]);
       setNewAlert('');
+      setPastedImage(null);
     } catch {
       // silent
     } finally {
@@ -136,7 +160,7 @@ export default function AlertsPage() {
     setLoadingMore(true);
     try {
       const { items, nextCursor } = await fetchAlerts(activeTab, cursor);
-      setAlerts((prev) => [...prev, ...items]);
+      setAlerts((prev) => [...items.reverse(), ...prev]);
       setCursor(nextCursor);
       setHasMore(!!nextCursor);
     } catch {
@@ -164,12 +188,24 @@ export default function AlertsPage() {
 
       {(user?.is_admin || user?.is_coach) && (
         <div className={styles.alertInputArea}>
+          {pastedImage && (
+            <div style={{ padding: '8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src={pastedImage} alt="Preview" style={{ height: '60px', borderRadius: '6px' }} />
+              <button
+                onClick={() => setPastedImage(null)}
+                style={{ background: 'var(--danger)', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}
+              >
+                Remove
+              </button>
+            </div>
+          )}
           <input
             className={styles.alertInput}
             type="text"
-            placeholder="Post a new alert..."
+            placeholder="Post a new alert... (paste images with Ctrl+V)"
             value={newAlert}
             onChange={(e) => setNewAlert(e.target.value)}
+            onPaste={handleAlertPaste}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -181,7 +217,7 @@ export default function AlertsPage() {
           <button
             className={styles.alertSendBtn}
             onClick={handleSendAlert}
-            disabled={!newAlert.trim() || sending}
+            disabled={(!newAlert.trim() && !pastedImage) || sending}
           >
             {sending ? '...' : 'Post'}
           </button>
@@ -243,7 +279,19 @@ export default function AlertsPage() {
                     </div>
                   )}
 
-                  <div className={styles.alertContent}>{alert.content}</div>
+                  <div className={styles.alertContent}>
+                    {alert.content.includes('[image]') ? (
+                      <>
+                        {alert.content.replace(/\[image\].*?\[\/image\]/g, '').trim() && (
+                          <span>{alert.content.replace(/\[image\].*?\[\/image\]/g, '').trim()}</span>
+                        )}
+                        {alert.content.match(/\[image\](.*?)\[\/image\]/g)?.map((match: string, i: number) => {
+                          const src = match.replace('[image]', '').replace('[/image]', '');
+                          return <img key={i} src={src} alt="Chart" style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px', display: 'block' }} />;
+                        })}
+                      </>
+                    ) : alert.content}
+                  </div>
 
                   {alert.has_image && alert.image_url && alert.image_url.startsWith('http') && (
                     <img
