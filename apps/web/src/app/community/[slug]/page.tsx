@@ -81,6 +81,13 @@ export default function ChannelChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
+
+  // Reset local state when channel changes
+  useEffect(() => {
+    setMessages([]);
+    setCursor(null);
+    setHasMore(true);
+  }, [slug]);
   const [loadingMore, setLoadingMore] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -90,36 +97,40 @@ export default function ChannelChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Fetch channel info
+  // Fetch channel info by slug directly
   const { data: channel, isLoading: channelLoading, error: channelError } = useQuery<Channel>({
     queryKey: ['channel', slug],
     queryFn: async () => {
-      const { data } = await api.get('/channels');
-      const list: Channel[] = data.channels ?? data;
-      const found = list.find((c: Channel) => c.slug === slug);
-      if (!found) throw new Error('Channel not found');
-      return found;
+      const { data } = await api.get(`/channels/by-slug/${slug}`);
+      return data.channel ?? data;
     },
     enabled: !!slug,
     staleTime: Infinity,
     gcTime: Infinity,
   });
 
-  // Fetch initial messages
-  const { isLoading: msgsLoading, error: msgsError } = useQuery({
+  // Fetch initial messages - only if we don't already have them
+  const { data: cachedMessages, isLoading: msgsLoading, error: msgsError } = useQuery<Message[]>({
     queryKey: ['messages', channel?.id],
     queryFn: async () => {
       const { data } = await api.get(`/channels/${channel!.id}/messages?limit=50`);
       const msgs: Message[] = data.messages ?? data;
-      setMessages(msgs.reverse());
+      const reversed = msgs.reverse();
       setCursor(data.nextCursor ?? (msgs.length >= 50 ? msgs[0]?.id : null));
       setHasMore(!!data.nextCursor || msgs.length >= 50);
-      return msgs;
+      return reversed;
     },
     enabled: !!channel?.id,
     staleTime: Infinity,
     gcTime: Infinity,
   });
+
+  // Sync cached messages to local state when query data changes
+  useEffect(() => {
+    if (cachedMessages) {
+      setMessages(cachedMessages);
+    }
+  }, [cachedMessages]);
 
   // Delete message handler (admin only)
   const handleDeleteMessage = async (msgId: string) => {
