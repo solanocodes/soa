@@ -22,7 +22,7 @@ export async function GET(
   try {
     const authUser = await requireAuth(req);
     const { id } = params;
-    const userTier = (authUser.tier || 'FREE') as Tier;
+    const userTier = (authUser.tier || 'FREE') as string;
 
     const cursor = req.nextUrl.searchParams.get('cursor');
     const limit = Math.min(Number(req.nextUrl.searchParams.get('limit') || 50), 50);
@@ -33,7 +33,7 @@ export async function GET(
       return errorResponse('Channel not found', 404);
     }
 
-    if (!hasAccess(userTier, channel.required_tier as Tier)) {
+    if (!hasAccess(userTier, channel.required_tier as string)) {
       return errorResponse('Insufficient tier access', 403);
     }
 

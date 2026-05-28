@@ -21,7 +21,7 @@ function hasAccess(userTier: string, requiredTier: string): boolean {
 export async function GET(req: NextRequest) {
   try {
     const authUser = await requireAuth(req);
-    const userTier = (authUser.tier || 'FREE') as Tier;
+    const userTier = (authUser.tier || 'FREE') as string;
 
     const channels = await db('channels')
       .where({ is_active: true })
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     const accessibleChannels = authUser.isAdmin
       ? channels
       : channels.filter((channel) =>
-          hasAccess(userTier, channel.required_tier as Tier)
+          hasAccess(userTier, channel.required_tier as string)
         );
 
     return NextResponse.json({ channels: accessibleChannels });
