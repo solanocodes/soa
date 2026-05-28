@@ -209,7 +209,7 @@ export default function Sidebar() {
       >
         <div className={styles.header}>
           {branding?.logo_url ? (
-            <img src={branding.logo_url} alt={branding?.app_name || 'SOA'} style={{ maxHeight: '40px', maxWidth: '200px', objectFit: 'contain' }} />
+            <img src={branding.logo_url} alt={branding?.app_name || 'SOA'} style={{ maxHeight: '60px', maxWidth: '220px', objectFit: 'contain' }} />
           ) : (
             <div>
               <div className={styles.logoText}>{branding?.app_name || 'SOA'}</div>

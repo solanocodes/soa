@@ -81,6 +81,7 @@ export default function ChannelChatPage() {
   const [hasMore, setHasMore] = useState(true);
   const [channelData, setChannelData] = useState<Channel | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -96,6 +97,7 @@ export default function ChannelChatPage() {
     let cancelled = false;
     setInitialLoading(true);
     setMessages([]);
+    setLoadError(null);
 
     (async () => {
       try {
@@ -110,7 +112,12 @@ export default function ChannelChatPage() {
         setMessages(msgs.reverse());
         setCursor(msgData.nextCursor ?? (msgs.length >= 50 ? msgs[0]?.id : null));
         setHasMore(!!msgData.nextCursor || msgs.length >= 50);
-      } catch {
+      } catch (err: any) {
+        if (!cancelled) {
+          const msg = err?.response?.data?.error || err?.message || 'Failed to load channel';
+          setLoadError(msg);
+          console.error('Channel load error:', msg);
+        }
         // silent
       } finally {
         if (!cancelled) setInitialLoading(false);
@@ -121,10 +128,7 @@ export default function ChannelChatPage() {
   }, [slug]);
 
   const channel = channelData;
-  const channelLoading = initialLoading && !channel;
-  const channelError = null;
-  const msgsLoading = initialLoading;
-  const msgsError = null;
+  const channelLoading = initialLoading && !channel && !loadError;
 
   // Delete message handler (admin only)
   const handleDeleteMessage = async (msgId: string) => {
@@ -262,7 +266,18 @@ export default function ChannelChatPage() {
     }
   };
 
-  if (channelLoading || msgsLoading) {
+  if (loadError) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.centerState}>
+          <span className={styles.errorText}>{loadError}</span>
+          <button className={styles.retryBtn} onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (channelLoading) {
     return (
       <div className={styles.container}>
         <div className={styles.centerState}>
@@ -335,22 +350,6 @@ export default function ChannelChatPage() {
               </a>
             </div>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (channelError || msgsError) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.centerState}>
-          <span className={styles.errorText}>Failed to load channel</span>
-          <button
-            className={styles.retryBtn}
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </button>
         </div>
       </div>
     );
