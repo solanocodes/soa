@@ -25,7 +25,7 @@ export async function GET(
     const userTier = (authUser.tier || 'FREE') as string;
 
     const cursor = req.nextUrl.searchParams.get('cursor');
-    const limit = Math.min(Number(req.nextUrl.searchParams.get('limit') || 50), 50);
+    const limit = Math.min(Number(req.nextUrl.searchParams.get('limit') || 20), 30);
 
     // Verify channel exists
     const channel = await db('channels').where({ id }).first();
