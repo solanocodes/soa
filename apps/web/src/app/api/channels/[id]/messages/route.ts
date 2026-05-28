@@ -27,14 +27,10 @@ export async function GET(
     const cursor = req.nextUrl.searchParams.get('cursor');
     const limit = Math.min(Number(req.nextUrl.searchParams.get('limit') || 50), 50);
 
-    // Verify channel exists and user has access
+    // Verify channel exists
     const channel = await db('channels').where({ id }).first();
     if (!channel) {
       return errorResponse('Channel not found', 404);
-    }
-
-    if (!hasAccess(userTier, channel.required_tier as string)) {
-      return errorResponse('Insufficient tier access', 403);
     }
 
     let query = db('messages')
