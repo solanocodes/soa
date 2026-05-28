@@ -232,6 +232,10 @@ export default function DmChatPage() {
 
   return (
     <div className={styles.container}>
+      <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <a href="/dms" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '20px' }}>←</a>
+        <span style={{ color: 'var(--text)', fontWeight: 600, fontSize: '16px' }}>Back to Messages</span>
+      </div>
       <div className={styles.feed}>
         {messages.length === 0 && (
           <div className={styles.centerState}>
@@ -257,7 +261,7 @@ export default function DmChatPage() {
                   <span className={`${styles.authorName} ${isStaff ? styles.authorStaff : ''}`}>
                     {senderName}
                   </span>
-                  {msg.is_ai_generated && <span className={styles.aiBadge}>AI</span>}
+                  {/* AI badge hidden so AI responses appear as from Sean */}
                   <span className={styles.timestamp}>{getRelativeTime(msg.created_at)}</span>
                 </div>
                 <div className={styles.messageContent}>{msg.content}</div>

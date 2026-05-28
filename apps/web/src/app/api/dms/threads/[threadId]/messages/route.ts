@@ -154,6 +154,11 @@ export async function POST(
           content: m.content,
         }));
 
+        // Before generating AI response, remove any existing pending suggestions
+        await db('direct_messages')
+          .where({ thread_id: threadId, is_pending: true })
+          .del();
+
         const { response: aiResponse, confidence } = await generateAIResponse(content, history);
 
         if (thread.ai_mode === 'autopilot' && confidence >= 0.7) {

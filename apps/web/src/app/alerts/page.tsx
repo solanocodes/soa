@@ -102,7 +102,7 @@ export default function AlertsPage() {
     fetchAlerts(activeTab)
       .then(({ items, nextCursor }) => {
         if (cancelled) return;
-        setAlerts(items.reverse());
+        setAlerts(items);
         setCursor(nextCursor);
         setHasMore(!!nextCursor);
       })
@@ -145,7 +145,7 @@ export default function AlertsPage() {
         alert_type: 'trade',
         channel_slug: channelSlug,
       });
-      setAlerts((prev) => [...prev, data.alert]);
+      setAlerts((prev) => [data.alert, ...prev]);
       setNewAlert('');
       setPastedImage(null);
     } catch {
@@ -160,7 +160,7 @@ export default function AlertsPage() {
     setLoadingMore(true);
     try {
       const { items, nextCursor } = await fetchAlerts(activeTab, cursor);
-      setAlerts((prev) => [...items.reverse(), ...prev]);
+      setAlerts((prev) => [...prev, ...items]);
       setCursor(nextCursor);
       setHasMore(!!nextCursor);
     } catch {
