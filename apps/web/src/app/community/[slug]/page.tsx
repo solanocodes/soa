@@ -308,11 +308,7 @@ export default function ChannelChatPage() {
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1, padding: '60px 24px' }}>
           <div style={{ maxWidth: '600px', width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              {user?.avatar_url ? (
-                <img src={user.avatar_url} alt="" style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} />
-              ) : (
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#00D084', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '18px', color: '#000' }}>SS</div>
-              )}
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#00D084', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '18px', color: '#000' }}>SS</div>
               <span style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '18px' }}>Sean Solano</span>
             </div>
             <div style={{ background: 'var(--surface-elevated)', borderLeft: '4px solid var(--primary)', borderRadius: '0 12px 12px 0', padding: '28px 32px' }}>

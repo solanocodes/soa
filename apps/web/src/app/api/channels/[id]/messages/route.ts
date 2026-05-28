@@ -2,18 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/database';
 import { requireAuth, errorResponse } from '@/lib/api-helpers';
 
-const TIERS = ['FREE', 'SOA_CORE', 'SOA_WEALTH', 'BOT_PRODUCT'] as const;
-type Tier = (typeof TIERS)[number];
-
-const TIER_HIERARCHY: Record<Tier, number> = {
+const TIER_HIERARCHY: Record<string, number> = {
   FREE: 0,
+  MENTORSHIP: 1,
   SOA_CORE: 1,
-  SOA_WEALTH: 2,
+  INNER_CIRCLE: 2,
+  SOA_WEALTH: 3,
   BOT_PRODUCT: 3,
 };
 
-function hasAccess(userTier: Tier, requiredTier: Tier): boolean {
-  return TIER_HIERARCHY[userTier] >= TIER_HIERARCHY[requiredTier];
+function hasAccess(userTier: string, requiredTier: string): boolean {
+  return (TIER_HIERARCHY[userTier] ?? 0) >= (TIER_HIERARCHY[requiredTier] ?? 0);
 }
 
 export async function GET(
