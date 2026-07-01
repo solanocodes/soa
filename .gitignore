@@ -20,3 +20,5 @@ web-build/
 npm-debug.*
 .DS_Store
 research/mnq-algo/results/*.parquet
+__pycache__/
+*.pyc
