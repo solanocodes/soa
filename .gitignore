@@ -19,3 +19,4 @@ web-build/
 *.orig.*
 npm-debug.*
 .DS_Store
+research/mnq-algo/results/*.parquet

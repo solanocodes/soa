@@ -1,0 +1,68 @@
+//@version=6
+// VWAP Fade Plus — runner-up (Edge A standalone, wider 10:00-15:00 window,
+// 0.6R breakeven lock). See research/mnq-algo for the tournament results.
+// Chart: MNQ (CME), 5-minute bars.
+strategy("VWAP Fade Plus [MNQ]", overlay=true,
+     initial_capital=25000, default_qty_type=strategy.fixed, default_qty_value=1,
+     commission_type=strategy.commission.cash_per_contract, commission_value=0.62,
+     slippage=1, calc_on_every_tick=false, pyramiding=0)
+
+kBand   = input.float(1.5, "Band stretch (k * stdev)", step=0.1)
+tgtFrac = input.float(0.75, "Target (fraction of VWAP distance)", step=0.05)
+beR     = input.float(0.6, "Breakeven lock trigger (R)", step=0.1)
+stopAtr = input.float(1.2, "Stop (x ATR14)", step=0.1)
+rsiGate = input.int(35, "RSI(3) gate")
+sess    = input.session("1000-1500", "Entry window (ET)")
+clamp(x) => math.max(4.0, math.min(80.0, x))
+
+tz = "America/New_York"
+inRTH  = not na(time(timeframe.period, "0930-1600", tz))
+newRTH = inRTH and not inRTH[1]
+inWin  = not na(time(timeframe.period, sess, tz))
+flatNow = not na(time(timeframe.period, "1555-1600", tz))
+
+var float cumPV = 0.0
+var float cumV = 0.0
+if newRTH
+    cumPV := 0.0
+    cumV := 0.0
+if inRTH
+    cumPV += hlc3 * volume
+    cumV += volume
+vwapRTH = cumV > 0 ? cumPV / cumV : na
+
+dev = close - vwapRTH
+sdev = ta.stdev(dev, 20)
+r3 = ta.rsi(close, 3)
+atr = ta.atr(14)
+
+var float stopPts = na
+var float tgtPts = na
+if strategy.position_size == 0 and inWin and not na(sdev) and sdev > 0 and math.abs(dev) >= 0.6 * atr and barstate.isconfirmed
+    if dev < -kBand * sdev and r3 < rsiGate
+        stopPts := clamp(stopAtr * atr)
+        tgtPts := clamp(tgtFrac * math.abs(dev))
+        strategy.entry("long", strategy.long)
+    else if dev > kBand * sdev and r3 > 100 - rsiGate
+        stopPts := clamp(stopAtr * atr)
+        tgtPts := clamp(tgtFrac * math.abs(dev))
+        strategy.entry("short", strategy.short)
+
+var bool beLocked = false
+if strategy.position_size != 0
+    avg = strategy.position_avg_price
+    long = strategy.position_size > 0
+    if not beLocked and (long ? high - avg : avg - low) >= beR * stopPts
+        beLocked := true
+    stopPx = beLocked ? avg + (long ? 1 : -1) * syminfo.mintick : avg - (long ? 1 : -1) * stopPts
+    strategy.exit("x", stop=stopPx, limit=avg + (long ? 1 : -1) * tgtPts)
+else
+    beLocked := false
+
+if flatNow or not inRTH
+    strategy.close_all(comment="eod")
+    strategy.cancel_all()
+
+plot(vwapRTH, "RTH VWAP", color=color.orange, linewidth=2)
+plot(vwapRTH + kBand * sdev, color=color.new(color.orange, 60))
+plot(vwapRTH - kBand * sdev, color=color.new(color.orange, 60))

@@ -1,0 +1,79 @@
+//@version=6
+// IB Fade Pro — highest profit-factor edge of the tournament (PF 2.53,
+// avg MAE 22.3 pts on holdout). Fades tests of the initial balance (first
+// 60 min) on days that are NOT extending, with a structure stop, 0.5R
+// breakeven lock and 30-bar time stop. Low frequency (~1 trade / 1-2 days).
+// Chart: MNQ (CME), 5-minute bars.
+strategy("IB Fade Pro [MNQ]", overlay=true,
+     initial_capital=25000, default_qty_type=strategy.fixed, default_qty_value=1,
+     commission_type=strategy.commission.cash_per_contract, commission_value=0.62,
+     slippage=1, calc_on_every_tick=false, pyramiding=0)
+
+ibExt = input.float(0.3, "Max day extension beyond IB (x IB range)", step=0.05)
+beR   = input.float(0.5, "Breakeven lock trigger (R)", step=0.1)
+sess  = input.session("1100-1500", "Entry window (ET)")
+clamp(x) => math.max(4.0, math.min(80.0, x))
+
+tz = "America/New_York"
+inRTH  = not na(time(timeframe.period, "0930-1600", tz))
+newRTH = inRTH and not inRTH[1]
+inIB   = not na(time(timeframe.period, "0930-1030", tz))
+inWin  = not na(time(timeframe.period, sess, tz))
+flatNow = not na(time(timeframe.period, "1555-1600", tz))
+
+var float ibHi = na
+var float ibLo = na
+var float dayHi = na
+var float dayLo = na
+if newRTH
+    ibHi := high
+    ibLo := low
+    dayHi := high
+    dayLo := low
+if inRTH and not newRTH
+    dayHi := math.max(dayHi, high)
+    dayLo := math.min(dayLo, low)
+    if inIB
+        ibHi := math.max(ibHi, high)
+        ibLo := math.min(ibLo, low)
+ibRange = ibHi - ibLo
+ibMid = (ibHi + ibLo) / 2
+notExtended = not na(ibRange) and ibRange > 0 and dayHi <= ibHi + ibExt * ibRange and dayLo >= ibLo - ibExt * ibRange
+
+var float stopPts = na
+var float tgtPts = na
+var int entryBar = na
+if strategy.position_size == 0 and inWin and notExtended and barstate.isconfirmed
+    if high >= ibHi and close < ibHi and close < close[1]
+        stopPts := clamp(math.max(high, math.max(high[1], high[2])) - close + 2.0)
+        tgtPts := clamp((close - ibMid) * 0.9)
+        strategy.entry("short", strategy.short)
+    else if low <= ibLo and close > ibLo and close > close[1]
+        stopPts := clamp(close - math.min(low, math.min(low[1], low[2])) + 2.0)
+        tgtPts := clamp((ibMid - close) * 0.9)
+        strategy.entry("long", strategy.long)
+
+var bool beLocked = false
+if strategy.position_size != 0
+    if na(entryBar)
+        entryBar := bar_index
+        beLocked := false
+    avg = strategy.position_avg_price
+    long = strategy.position_size > 0
+    if not beLocked and (long ? high - avg : avg - low) >= beR * stopPts
+        beLocked := true
+    stopPx = beLocked ? avg + (long ? 1 : -1) * syminfo.mintick : avg - (long ? 1 : -1) * stopPts
+    strategy.exit("x", stop=stopPx, limit=avg + (long ? 1 : -1) * tgtPts)
+    if bar_index - entryBar >= 30
+        strategy.close_all(comment="time")
+else
+    entryBar := na
+    beLocked := false
+
+if flatNow or not inRTH
+    strategy.close_all(comment="eod")
+    strategy.cancel_all()
+
+plot(inRTH ? ibHi : na, "IB high", color=color.aqua, style=plot.style_linebr)
+plot(inRTH ? ibLo : na, "IB low", color=color.aqua, style=plot.style_linebr)
+plot(inRTH ? ibMid : na, "IB mid", color=color.new(color.aqua, 60), style=plot.style_linebr)
