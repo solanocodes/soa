@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/database';
 import { requireAuth, errorResponse } from '@/lib/api-helpers';
+import { publicAvatarUrl } from '@/lib/avatars';
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,7 +28,12 @@ export async function POST(req: NextRequest) {
       .select('id', 'username', 'display_name', 'avatar_url', 'is_admin', 'is_coach')
       .first();
 
-    const fullMessage = { ...message, author };
+    const fullMessage = {
+      ...message,
+      author: author
+        ? { ...author, avatar_url: publicAvatarUrl(author.id, author.avatar_url) }
+        : author,
+    };
 
     return NextResponse.json({ message: fullMessage }, { status: 201 });
   } catch (err: any) {

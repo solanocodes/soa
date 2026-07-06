@@ -19,3 +19,5 @@ web-build/
 *.orig.*
 npm-debug.*
 .DS_Store
+.next/
+next-env.d.ts

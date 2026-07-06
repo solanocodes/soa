@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/database';
 import { requireAuth, errorResponse } from '@/lib/api-helpers';
+import { avatarUrlSelect } from '@/lib/avatars';
 
 // Returns ALL wins (including historical imports) by default.
 // If the wins page shows empty, the historical data likely hasn't been
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
         'student_wins.*',
         'users.username as author_username',
         'users.display_name as author_display_name',
-        'users.avatar_url as author_avatar_url'
+        avatarUrlSelect('author_avatar_url')
       )
       .orderBy([
         { column: 'student_wins.created_at', order: 'desc' },

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/database';
 import { requireAuth, errorResponse } from '@/lib/api-helpers';
+import { avatarUrlSelect, publicAvatarUrl } from '@/lib/avatars';
 
 export async function GET(
   req: NextRequest,
@@ -34,7 +35,7 @@ export async function GET(
         'direct_messages.*',
         'users.username as sender_username',
         'users.display_name as sender_display_name',
-        'users.avatar_url as sender_avatar_url'
+        avatarUrlSelect('sender_avatar_url')
       )
       .orderBy([
         { column: 'direct_messages.created_at', order: 'desc' },
@@ -134,7 +135,12 @@ export async function POST(
       .select('id', 'username', 'display_name', 'avatar_url')
       .first();
 
-    const fullMessage = { ...message, sender };
+    const fullMessage = {
+      ...message,
+      sender: sender
+        ? { ...sender, avatar_url: publicAvatarUrl(sender.id, sender.avatar_url) }
+        : sender,
+    };
 
     // If student sent message to coach, trigger AI response generation
     if (authUser.userId === thread.student_id && thread.ai_mode !== 'off') {

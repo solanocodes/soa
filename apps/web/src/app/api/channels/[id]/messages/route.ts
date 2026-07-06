@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/database';
 import { requireAuth, errorResponse } from '@/lib/api-helpers';
+import { avatarUrlSelect } from '@/lib/avatars';
 
 const TIER_HIERARCHY: Record<string, number> = {
   FREE: 0,
@@ -40,7 +41,7 @@ export async function GET(
         'messages.*',
         'users.username as author_username',
         'users.display_name as author_display_name',
-        'users.avatar_url as author_avatar_url',
+        avatarUrlSelect('author_avatar_url'),
         'users.is_admin as author_is_admin',
         'users.is_coach as author_is_coach'
       )

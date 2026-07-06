@@ -9,6 +9,11 @@ export async function GET(req: NextRequest) {
     for (const row of rows) {
       settings[row.key] = row.value;
     }
+    // Serve uploaded logos from a cacheable endpoint instead of inlining
+    // the multi-MB data URL into every sidebar load
+    if (settings.logo_url?.startsWith('data:')) {
+      settings.logo_url = '/api/branding/logo';
+    }
     return NextResponse.json({ settings });
   } catch (err: any) {
     return NextResponse.json({ settings: {} });
@@ -24,7 +29,9 @@ export async function POST(req: NextRequest) {
 
     const { logo_url, app_name, app_subtitle } = await req.json();
 
-    if (logo_url !== undefined) {
+    // '/api/branding/logo' is the placeholder we hand to clients in GET;
+    // saving it back would clobber the real stored image
+    if (logo_url !== undefined && logo_url !== '/api/branding/logo') {
       await db('app_settings').where({ key: 'logo_url' }).update({ value: logo_url, updated_at: db.fn.now() });
     }
     if (app_name !== undefined) {

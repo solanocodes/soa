@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/database';
 import { requireAuth, errorResponse } from '@/lib/api-helpers';
+import { publicAvatarUrl } from '@/lib/avatars';
 
 export async function GET(req: NextRequest) {
   try {
@@ -26,7 +27,9 @@ export async function GET(req: NextRequest) {
       .limit(20);
 
     // Filter out the current user from results
-    const filtered = users.filter((u: any) => u.id !== authUser.userId);
+    const filtered = users
+      .filter((u: any) => u.id !== authUser.userId)
+      .map((u: any) => ({ ...u, avatar_url: publicAvatarUrl(u.id, u.avatar_url) }));
 
     return NextResponse.json({ users: filtered });
   } catch (err: any) {

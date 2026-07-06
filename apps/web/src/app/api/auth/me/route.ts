@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/database';
 import { requireAuth, errorResponse } from '@/lib/api-helpers';
+import { publicAvatarUrl } from '@/lib/avatars';
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,7 +21,9 @@ export async function GET(req: NextRequest) {
       return errorResponse('User not found', 404);
     }
 
-    return NextResponse.json({ user });
+    return NextResponse.json({
+      user: { ...user, avatar_url: publicAvatarUrl(user.id, user.avatar_url) },
+    });
   } catch (err: any) {
     return errorResponse(err.message, err.status || 500);
   }

@@ -145,17 +145,30 @@ export default function ChannelChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Poll for new messages every 5 seconds
+  // Poll for new messages every 5 seconds. Skip a tick while the previous
+  // poll is still in flight so slow responses can't pile up, and drop
+  // responses that arrive after switching channels.
+  const pollBusyRef = useRef(false);
   useEffect(() => {
     if (!channel?.id) return;
+    let active = true;
     const interval = setInterval(async () => {
+      if (pollBusyRef.current) return;
+      pollBusyRef.current = true;
       try {
         const { data } = await api.get(`/channels/${channel.id}/messages?limit=50`);
+        if (!active) return;
         const msgs: Message[] = data.messages ?? data;
         setMessages(msgs.reverse());
-      } catch {}
+      } catch {
+      } finally {
+        pollBusyRef.current = false;
+      }
     }, 5000);
-    return () => clearInterval(interval);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
   }, [channel?.id]);
 
   // Socket connection

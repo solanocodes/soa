@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/database';
 import { requireAuthFresh as requireAuth, errorResponse } from '@/lib/api-helpers';
+import { publicAvatarUrl } from '@/lib/avatars';
 
 export async function GET(req: NextRequest) {
   try {
@@ -53,7 +54,10 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const users = await query;
+    const users = (await query).map((u: any) => ({
+      ...u,
+      avatar_url: publicAvatarUrl(u.id, u.avatar_url),
+    }));
     const nextCursor = users.length > 0 ? users[users.length - 1].id : null;
 
     return NextResponse.json({ users, nextCursor });

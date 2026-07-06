@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/database';
 import { requireAuth, errorResponse } from '@/lib/api-helpers';
+import { avatarUrlSelect, publicAvatarUrl } from '@/lib/avatars';
 
 // Returns ALL alerts (both historical and non-historical) by default.
 // If the alerts page shows empty, the historical data likely hasn't been
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
         'alerts.*',
         'users.username as author_username',
         'users.display_name as author_display_name',
-        'users.avatar_url as author_avatar_url'
+        avatarUrlSelect('author_avatar_url')
       )
       .orderBy([
         { column: 'alerts.created_at', order: 'desc' },
@@ -124,7 +125,12 @@ export async function POST(req: NextRequest) {
       .select('id', 'username', 'display_name', 'avatar_url')
       .first();
 
-    const fullAlert = { ...alert, author };
+    const fullAlert = {
+      ...alert,
+      author: author
+        ? { ...author, avatar_url: publicAvatarUrl(author.id, author.avatar_url) }
+        : author,
+    };
 
     return NextResponse.json({ alert: fullAlert }, { status: 201 });
   } catch (err: any) {
