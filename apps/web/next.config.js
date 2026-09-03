@@ -6,6 +6,8 @@ const nextConfig = {
     ],
   },
   experimental: {
+    // Boots src/instrumentation.ts on server start (daily recap scheduler).
+    instrumentationHook: true,
     serverComponentsExternalPackages: ['knex', 'pg', 'bcryptjs', 'jsonwebtoken', 'openai', '@anthropic-ai/sdk', 'node-cron'],
   },
 };

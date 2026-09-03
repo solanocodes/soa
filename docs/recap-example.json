@@ -1,0 +1,31 @@
+{
+  "date": "2026-09-03",
+  "summary": "Choppy open, sat on hands until the 10:30 reversal. Two clean setups, took both, trailed the runner.",
+  "netPnl": 1240,
+  "tickers": ["SPY", "NVDA"],
+  "trades": [
+    {
+      "ticker": "SPY",
+      "direction": "call",
+      "contract": "560C 0DTE",
+      "entry": 1.15,
+      "exit": 1.92,
+      "result": "win",
+      "pnl": "+67%",
+      "notes": "reclaim of VWAP"
+    },
+    {
+      "ticker": "NVDA",
+      "direction": "put",
+      "entry": 4.4,
+      "exit": 3.6,
+      "result": "loss",
+      "pnl": "-18%",
+      "notes": "fought the trend, cut it"
+    }
+  ],
+  "notes": [
+    "Waiting for the 10:30 flush kept me out of two bad entries.",
+    "Size up only on A+ setups."
+  ]
+}
